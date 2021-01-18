@@ -22,7 +22,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 public class Measurement {
     @XStreamAlias("Value")
     @XStreamAsAttribute
-    private String value = "";
+    private double value = 0;
     @XStreamAlias("Unit")
     @XStreamAsAttribute
     private String unit = "";
@@ -35,7 +35,7 @@ public class Measurement {
      *
      * @return Value
      */
-    public String getValue() {
+    public double getValue() {
         return value;
     }
 

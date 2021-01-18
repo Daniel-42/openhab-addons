@@ -30,8 +30,18 @@ public class StecaGridBindingConstants {
     public static final ThingTypeUID STECA_GRID_INVERTER = new ThingTypeUID(BINDING_ID, "stecagrid_inverter");
 
     // List of all Channel ids
-    public static final String CHANNEL_AC_VOLTAGE = "ac_voltage";
+    public static final String CHANNEL_AC_VOLTAGE = "inverter#ac_voltage";
+    public static final String CHANNEL_AC_CURRENT = "inverter#ac_current";
+    public static final String CHANNEL_AC_POWER = "inverter#ac_power";
+    public static final String CHANNEL_AC_POWER_FAST = "inverter#ac_power_fast";
+    public static final String CHANNEL_AC_FREQUENCY = "inverter#ac_frequency";
+    public static final String CHANNEL_DC_VOLTAGE = "inverter#dc_voltage";
+    public static final String CHANNEL_DC_CURRENT = "inverter#dc_current";
+    public static final String CHANNEL_LINK_VOLTAGE = "inverter#link_voltage";
+    public static final String CHANNEL_DERATING = "inverter#derating";
 
     // List of all properties
     public static final String PROPERTY_DEVICE_NAME = "deviceName";
+    public static final String PROPERTY_DEVICE_TYPE = "deviceType";
+    public static final String PROPERTY_DEVICE_NOMINAL_POWER = "deviceNominalPower";
 }
