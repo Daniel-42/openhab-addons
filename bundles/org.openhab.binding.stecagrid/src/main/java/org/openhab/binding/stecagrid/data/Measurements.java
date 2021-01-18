@@ -22,7 +22,7 @@ public class Measurements {
     @XStreamAlias("Device")
     private Device device = new Device();
 
-    public double getAcVoltage() {
-        return device.getAcVoltage();
+    public Device getDevice() {
+        return device;
     }
 }
