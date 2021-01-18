@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.stecagrid.internal;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -21,6 +22,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.stecagrid.data.Measurements;
+import org.openhab.core.io.net.http.HttpUtil;
+import org.openhab.core.library.types.QuantityType;
+import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
@@ -32,6 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.thoughtworks.xstream.InitializationException;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 
 /**
  * The {@link StecaGridHandler} is responsible for handling commands, which are
@@ -55,9 +63,9 @@ public class StecaGridHandler extends BaseThingHandler {
 
     private final Lock configurationLock = new ReentrantLock(); // to protected fields accessed in init/dispose AND the
                                                                 // poller
-    private String measurementsURL = "";
-    private String yieldMonthURL = "";
-    private String yieldYearURL = "";
+    private @Nullable XStream xstream;
+
+    private String stecaHost = "";
 
     private String deviceName = "";
     private String deviceType = "";
@@ -84,6 +92,24 @@ public class StecaGridHandler extends BaseThingHandler {
      */
     @Override
     public void initialize() {
+        try {
+            xstream = new XStream(new DomDriver());
+        } catch (InitializationException ie) {
+            logger.warn("Failed to initialize XML parser: {}", ie);
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_INITIALIZING_ERROR,
+                    "Failed to initialize XML parsern");
+            return;
+        }
+
+        XStream x;
+        if (xstream != null) {
+            x = xstream;
+            XStream.setupDefaultSecurity(x);
+            x.allowTypesByWildcard(new String[] { Measurements.class.getPackageName() + ".**" });
+            x.setClassLoader(Measurements.class.getClassLoader());
+            x.processAnnotations(Measurements.class);
+        }
+
         config = getConfigAs(StecaGridConfiguration.class);
 
         if (configure()) {
@@ -134,9 +160,7 @@ public class StecaGridHandler extends BaseThingHandler {
             updateStatus(ThingStatus.UNKNOWN);
             try {
                 configurationLock.lock();
-                measurementsURL = String.format("http://%s/measurements.xml", config.ipAddress.trim());
-                yieldMonthURL = String.format("http://%s/yields.json?month=1", config.ipAddress.trim());
-                yieldYearURL = String.format("http://%s/yields.json?year=1", config.ipAddress.trim());
+                stecaHost = config.ipAddress.trim();
             } finally {
                 configurationLock.unlock();
             }
@@ -200,18 +224,53 @@ public class StecaGridHandler extends BaseThingHandler {
      * The actual polling loop
      */
     private void pollingCode() {
+
+        // start with creating a local copy of the required configuration for this run
+        String measurementsURL = "";
+        String yieldMonthURL = "";
+        String yieldYearURL = "";
+
+        try {
+            configurationLock.lock();
+            measurementsURL = String.format("http://%s/measurements.xml", stecaHost);
+            yieldMonthURL = String.format("http://%s/yields.json?month=1", stecaHost);
+            yieldYearURL = String.format("http://%s/yields.json?year=1", stecaHost);
+        } finally {
+            configurationLock.unlock();
+        }
+
+        final String result;
+
+        // first get the current measurements
+        try {
+            result = HttpUtil.executeUrl("GET", measurementsURL, 500);
+
+            if (result.trim().isEmpty()) {
+                logger.warn("Empty Measurement data at {} ", measurementsURL);
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                        "Inverter returned empty measurements");
+                return;
+            }
+
+            updateStatus(ThingStatus.ONLINE);
+
+            try {
+                if (xstream != null) {
+                    Measurements measurements = (Measurements) xstream.fromXML(result);
+                    updateState(StecaGridBindingConstants.CHANNEL_AC_VOLTAGE,
+                            new QuantityType<>(measurements.getAcVoltage(), Units.VOLT));
+
+                }
+            } catch (Exception ex) {
+                logger.warn("woopy", ex);
+            }
+        } catch (IOException e) {
+            logger.warn("Measurement not found at {}", measurementsURL);
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Unable to query inverter");
+            return;
+        }
+
         /*
-         * final String result;
-         * try {
-         * result = HttpUtil.executeUrl("GET", apiURL, 500);
-         * 
-         * if (result.trim().isEmpty()) {
-         * logger.warn("P1 Wi-Fi meter API at URI {} returned empty result", apiURL);
-         * updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-         * "P1 Meter API returned empty status");
-         * return;
-         * }
-         * 
          * P1Payload payload = gson.fromJson(result, P1Payload.class);
          * if (payload != null) {
          * if (payload.getMeter_model() == "") {
@@ -219,20 +278,20 @@ public class StecaGridHandler extends BaseThingHandler {
          * "Results from API seem empty");
          * return;
          * }
-         * 
+         *
          * updateStatus(ThingStatus.ONLINE);
-         * 
+         *
          * if (meterModel != payload.getMeter_model()) {
          * meterModel = payload.getMeter_model();
          * updateProperty(HomeWizardBindingConstants.PROPERTY_METER_MODEL, meterModel);
          * }
-         * 
+         *
          * if (meterVersion != payload.getSmr_version()) {
          * meterVersion = payload.getSmr_version();
          * updateProperty(HomeWizardBindingConstants.PROPERTY_METER_VERSION,
          * String.format("%d", meterVersion));
          * }
-         * 
+         *
          * updateState(HomeWizardBindingConstants.CHANNEL_POWER_IMPORT_T1,
          * new QuantityType<>(payload.getTotal_power_import_t1_kwh(), Units.WATT));
          * updateState(HomeWizardBindingConstants.CHANNEL_POWER_IMPORT_T2,
@@ -241,7 +300,7 @@ public class StecaGridHandler extends BaseThingHandler {
          * new QuantityType<>(payload.getTotal_power_export_t1_kwh(), Units.WATT));
          * updateState(HomeWizardBindingConstants.CHANNEL_POWER_EXPORT_T2,
          * new QuantityType<>(payload.getTotal_power_export_t2_kwh(), Units.WATT));
-         * 
+         *
          * updateState(HomeWizardBindingConstants.CHANNEL_ACTIVE_POWER,
          * new QuantityType<>(payload.getActive_power_w(), Units.WATT));
          * updateState(HomeWizardBindingConstants.CHANNEL_ACTIVE_POWER_L1,
@@ -250,18 +309,13 @@ public class StecaGridHandler extends BaseThingHandler {
          * new QuantityType<>(payload.getActive_power_l2_w(), Units.WATT));
          * updateState(HomeWizardBindingConstants.CHANNEL_ACTIVE_POWER_L3,
          * new QuantityType<>(payload.getActive_power_l3_w(), Units.WATT));
-         * 
+         *
          * updateState(HomeWizardBindingConstants.CHANNEL_TOTAL_GAS,
          * new QuantityType<>(payload.getTotal_gas_m3(), Units.ONE)); // could convert, 1m^3 = 1000 liters
          * updateState(HomeWizardBindingConstants.CHANNEL_GAS_TIMESTAMP,
          * new QuantityType<>(payload.getGas_timestamp(), Units.SECOND));
          * }
-         * 
-         * } catch (IOException e) {
-         * logger.warn("IO Exception when querying P1 Wi-Fi meter API", e);
-         * updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Unable to query P1 Meter");
-         * return;
-         * }
+         *
          */
     }
 }
