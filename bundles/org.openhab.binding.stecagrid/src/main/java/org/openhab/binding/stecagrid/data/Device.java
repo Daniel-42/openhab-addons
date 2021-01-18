@@ -224,11 +224,48 @@ public class Device {
     }
 
     public double getAcVoltage() {
+        return getNamedDouble("AC_Voltage");
+    }
+
+    public double getAcCurrent() {
+        return getNamedDouble("AC_Current");
+    }
+
+    public double getAcPower() {
+        return getNamedDouble("AC_Power_fast");
+    }
+
+    public double getAcPowerFast() {
+        return getNamedDouble("AC_Power_fast");
+    }
+
+    public double getDcCurrent() {
+        return getNamedDouble("DC_Current");
+    }
+
+    public double getDcVoltage() {
+        return getNamedDouble("DC_Voltage");
+    }
+
+    public double getAcFrequency() {
+        return getNamedDouble("AC_Frequency");
+    }
+
+    public double getDerating() {
+        return getNamedDouble("Derating");
+    }
+
+    public double getLinkVoltage() {
+        return getNamedDouble("Link_Voltage");
+    }
+
+    private double getNamedDouble(String name) {
         for (Measurement m : measurements) {
-            if (m.getType().equals("AC_Voltage")) {
-                return Double.parseDouble(m.getValue());
+            if (m.getType().equals(name)) {
+                return m.getValue();
             }
         }
         return 0.0;
     }
+
 }

@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.stecagrid.data.Device;
 import org.openhab.binding.stecagrid.data.Measurements;
 import org.openhab.core.io.net.http.HttpUtil;
 import org.openhab.core.library.types.QuantityType;
@@ -67,9 +68,9 @@ public class StecaGridHandler extends BaseThingHandler {
 
     private String stecaHost = "";
 
-    private String deviceName = "";
-    private String deviceType = "";
-    private int deviceNominalPower = 0;
+    private String deviceName = "N/A";
+    private String deviceType = "N/A";
+    private String deviceNominalPower = "N/A";
 
     /**
      * Constructor
@@ -95,19 +96,13 @@ public class StecaGridHandler extends BaseThingHandler {
         try {
             xstream = new XStream(new DomDriver());
         } catch (InitializationException ie) {
-            logger.warn("Failed to initialize XML parser: {}", ie);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_INITIALIZING_ERROR,
                     "Failed to initialize XML parsern");
             return;
         }
 
-        XStream x;
         if (xstream != null) {
-            x = xstream;
-            XStream.setupDefaultSecurity(x);
-            x.allowTypesByWildcard(new String[] { Measurements.class.getPackageName() + ".**" });
-            x.setClassLoader(Measurements.class.getClassLoader());
-            x.processAnnotations(Measurements.class);
+            configureXstream(xstream);
         }
 
         config = getConfigAs(StecaGridConfiguration.class);
@@ -116,6 +111,15 @@ public class StecaGridHandler extends BaseThingHandler {
             stopPolling(true);
             startPolling();
         }
+
+        updateStatus(ThingStatus.ONLINE);
+    }
+
+    private void configureXstream(XStream xstream) {
+        XStream.setupDefaultSecurity(xstream);
+        xstream.allowTypesByWildcard(new String[] { Measurements.class.getPackageName() + ".**" });
+        xstream.setClassLoader(Measurements.class.getClassLoader());
+        xstream.processAnnotations(Measurements.class);
     }
 
     /**
@@ -257,9 +261,60 @@ public class StecaGridHandler extends BaseThingHandler {
             try {
                 if (xstream != null) {
                     Measurements measurements = (Measurements) xstream.fromXML(result);
-                    updateState(StecaGridBindingConstants.CHANNEL_AC_VOLTAGE,
-                            new QuantityType<>(measurements.getAcVoltage(), Units.VOLT));
 
+                    Device d = measurements.getDevice();
+
+                    if (deviceName != d.getName()) {
+                        deviceName = d.getName();
+                        updateProperty(StecaGridBindingConstants.PROPERTY_DEVICE_NAME, deviceName);
+                    }
+
+                    if (deviceNominalPower != d.getNominalPower()) {
+                        deviceNominalPower = d.getNominalPower();
+                        updateProperty(StecaGridBindingConstants.PROPERTY_DEVICE_NOMINAL_POWER, deviceNominalPower);
+                    }
+
+                    if (deviceType != d.getType()) {
+                        deviceType = d.getType();
+                        updateProperty(StecaGridBindingConstants.PROPERTY_DEVICE_TYPE, deviceType);
+                    }
+
+                    logger.warn("ACV {}", d.getAcVoltage());
+                    logger.warn("ACC {}", d.getAcCurrent());
+                    logger.warn("ACP {}", d.getAcPower());
+                    logger.warn("ACF {}", d.getAcPowerFast());
+                    logger.warn("LV {}", d.getLinkVoltage());
+                    logger.warn("ACF {}", d.getAcFrequency());
+
+                    // There's no sense, it's all Volta, Ampère and Ohm
+                    // Earth to Moon, it's the same as London-Rome
+
+                    updateState(StecaGridBindingConstants.CHANNEL_AC_VOLTAGE,
+                            new QuantityType<>(d.getAcVoltage(), Units.VOLT));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_AC_CURRENT,
+                            new QuantityType<>(d.getAcCurrent(), Units.AMPERE));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_AC_POWER,
+                            new QuantityType<>(d.getAcPower(), Units.WATT));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_AC_POWER_FAST,
+                            new QuantityType<>(d.getAcPowerFast(), Units.WATT));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_AC_FREQUENCY,
+                            new QuantityType<>(d.getAcFrequency(), Units.HERTZ));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_DC_VOLTAGE,
+                            new QuantityType<>(d.getDcVoltage(), Units.VOLT));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_DC_CURRENT,
+                            new QuantityType<>(d.getDcCurrent(), Units.AMPERE));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_LINK_VOLTAGE,
+                            new QuantityType<>(d.getLinkVoltage(), Units.VOLT));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_DERATING,
+                            new QuantityType<>(d.getDerating(), Units.ONE));
                 }
             } catch (Exception ex) {
                 logger.warn("woopy", ex);
