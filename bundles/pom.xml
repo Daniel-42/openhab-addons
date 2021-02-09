@@ -155,6 +155,7 @@
     <module>org.openhab.binding.kaleidescape</module>
     <module>org.openhab.binding.keba</module>
     <module>org.openhab.binding.km200</module>
+    <module>org.openhab.binding.knmi</module>
     <module>org.openhab.binding.knx</module>
     <module>org.openhab.binding.kodi</module>
     <module>org.openhab.binding.konnected</module>
