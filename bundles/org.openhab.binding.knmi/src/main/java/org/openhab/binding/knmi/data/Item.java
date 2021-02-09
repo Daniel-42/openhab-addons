@@ -10,20 +10,25 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.knmi.internal;
+package org.openhab.binding.knmi.data;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
-/**
- * The {@link KnmiConfiguration} class contains fields mapping thing configuration parameters.
- *
- * @author Daniël van Os - Initial contribution
- */
-@NonNullByDefault
-public class KnmiConfiguration {
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-    /**
-     * Time between refreshes in seconds (fixed for now)
-     */
-    public Integer refreshDelay = 300;
+@NonNullByDefault
+@XStreamAlias("item")
+public class Item {
+
+    private String title = "";
+    private String description = "";
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
 }

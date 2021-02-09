@@ -12,16 +12,30 @@
  */
 package org.openhab.binding.knmi.internal;
 
+import java.io.IOException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.library.types.DecimalType;
+import org.openhab.binding.knmi.data.Item;
+import org.openhab.binding.knmi.data.Warnings;
+import org.openhab.core.io.net.http.HttpUtil;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.thoughtworks.xstream.InitializationException;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 
 /**
  * The {@link KnmiHandler} is responsible for handling commands, which are
@@ -33,10 +47,12 @@ import org.slf4j.LoggerFactory;
 public class KnmiHandler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(KnmiHandler.class);
+    private @Nullable ScheduledFuture<?> pollingJob;
 
     private String thingItemTitle = "";
+    private @Nullable XStream xstream;
 
-    private @Nullable KnmiConfiguration config;
+    private KnmiConfiguration config = new KnmiConfiguration();
 
     public KnmiHandler(Thing thing) {
         super(thing);
@@ -53,22 +69,107 @@ public class KnmiHandler extends BaseThingHandler {
         if (KnmiBindingConstants.THING_HEADER_MAP.containsKey(thing.getThingTypeUID())) {
             thingItemTitle = "Waarschuwingen " + KnmiBindingConstants.THING_HEADER_MAP.get(thing.getThingTypeUID());
         } else {
-            logger.warn("Unmapped ThingTypeUID {}", thing.getThingTypeUID());
+            logger.error("Unmapped ThingTypeUID {}", thing.getThingTypeUID());
+            return;
         }
 
-        // TODO: Initialize the handler.
-        // The framework requires you to return from this method quickly. Also, before leaving this method a thing
-        // status from one of ONLINE, OFFLINE or UNKNOWN must be set. This might already be the real thing status in
-        // case you can decide it directly.
-        // In case you can not decide the thing status directly (e.g. for long running connection handshake using WAN
-        // access or similar) you should set status UNKNOWN here and then decide the real status asynchronously in the
-        // background.
+        try {
+            xstream = new XStream(new DomDriver());
+        } catch (InitializationException ie) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_INITIALIZING_ERROR,
+                    "Failed to initialize XML parser.");
+            return;
+        }
 
-        // set the thing status to UNKNOWN temporarily and let the background task decide for the real status.
-        // the framework is then able to reuse the resources from the thing handler initialization.
-        // we set this upfront to reliably check status updates in unit tests.
-        updateStatus(ThingStatus.ONLINE);
+        if (xstream != null) {
+            configureXstream(xstream);
+        }
 
-        updateState(KnmiBindingConstants.CHANNEL_C1_LEVEL, new DecimalType(0));
+        updateStatus(ThingStatus.UNKNOWN);
+        pollingJob = scheduler.scheduleWithFixedDelay(this::refreshHandler, 0, config.refreshDelay, TimeUnit.SECONDS);
+    }
+
+    private void configureXstream(XStream xml) {
+        XStream.setupDefaultSecurity(xml);
+        xml.allowTypesByWildcard(new String[] { Warnings.class.getPackageName() + ".**" });
+        xml.setClassLoader(Warnings.class.getClassLoader());
+        xml.ignoreUnknownElements();
+        xml.processAnnotations(Warnings.class);
+    }
+
+    /**
+     * dispose: stop the poller
+     */
+    @Override
+    public void dispose() {
+        var job = pollingJob;
+        if (job != null && !job.isCancelled()) {
+            job.cancel(true);
+        }
+        pollingJob = null;
+    }
+
+    /**
+     * Handler for the periodic refreshes
+     */
+    private void refreshHandler() {
+        final String result;
+
+        try {
+            result = HttpUtil.executeUrl("GET", "https://cdn.knmi.nl/knmi/xml/rss/rss_KNMIwaarschuwingen.xml", 2500);
+        } catch (IOException e) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Unable to query wanings RSS");
+            // todo shorter refresh interval?
+            return;
+        }
+
+        if (result.trim().isEmpty()) {
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                    "P1 Meter API returned empty status");
+            return;
+        }
+
+        try {
+            if (xstream != null) {
+                Warnings warnings = (Warnings) xstream.fromXML(result);
+
+                logger.warn("Channel Title: {}", warnings.getChannel().getTitle());
+
+                for (Item i : warnings.getChannel().getItems()) {
+                    if (i.getTitle().equals(thingItemTitle)) {
+                        logger.warn("Res: {}", i.getTitle());
+                        String des = i.getDescription();
+                        String[] tokens = des.split("<br><br>");
+                        for (String token : tokens) {
+                            String[] subtokens = token.split("<p>|<br>| \\(van | uur\\)");
+                            for (String subtoken : subtokens) {
+                                logger.warn("    : {}", subtoken.trim());
+                            }
+
+                            if (subtokens.length > 0) {
+                                String[] dateTokens = subtokens[subtokens.length - 1].split(" tot ");
+                                for (String dateToken : dateTokens) {
+                                    logger.warn("    : {}", dateToken.trim());
+                                }
+                                if (dateTokens.length == 2) {
+                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+                                            .withZone(ZoneId.of("UTC+1"));
+                                    ZonedDateTime start = ZonedDateTime.parse(dateTokens[0], formatter);
+                                    ZonedDateTime end = ZonedDateTime.parse(dateTokens[1], formatter);
+                                    logger.warn("    : {} --> {}", start, end);
+                                }
+                            }
+                        }
+                    } else if (!i.getTitle().startsWith("Waarschuwingen")) {
+                        logger.warn("Summary: {}", i.getTitle());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("XML could not by parsed. {}", e);
+        }
+
+        // updateState(KnmiBindingConstants.CHANNEL_C1_LEVEL, new DecimalType(0));
+
     }
 }
