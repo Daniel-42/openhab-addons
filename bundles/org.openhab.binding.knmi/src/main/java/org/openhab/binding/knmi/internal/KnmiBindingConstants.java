@@ -12,6 +12,9 @@
  */
 package org.openhab.binding.knmi.internal;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingTypeUID;
 
@@ -27,8 +30,27 @@ public class KnmiBindingConstants {
     private static final String BINDING_ID = "knmi";
 
     // List of all Thing Type UIDs
-    public static final ThingTypeUID THING_TYPE_SAMPLE = new ThingTypeUID(BINDING_ID, "sample");
+    public static final ThingTypeUID THING_TYPE_OVERIJSSEL = new ThingTypeUID(BINDING_ID, "warnings-overijssel");
+    public static final ThingTypeUID THING_TYPE_GELDERLAND = new ThingTypeUID(BINDING_ID, "warnings-gelderland");
+
+    public static final HashMap<ThingTypeUID, String> THING_HEADER_MAP = new HashMap<ThingTypeUID, String>(Map
+            .ofEntries(Map.entry(THING_TYPE_OVERIJSSEL, "Overijssel"), Map.entry(THING_TYPE_GELDERLAND, "Gelderland")));
 
     // List of all Channel ids
-    public static final String CHANNEL_1 = "channel1";
+    public static final String CHANNEL_C1_DESCRIPTION = "current-1#description";
+    public static final String CHANNEL_C2_DESCRIPTION = "current-2#description";
+    public static final String CHANNEL_C3_DESCRIPTION = "current-3#description";
+
+    public static final String CHANNEL_C1_START = "current-1#start_time";
+    public static final String CHANNEL_C2_START = "current-2#start_time";
+    public static final String CHANNEL_C3_START = "current-3#start_time";
+
+    public static final String CHANNEL_C1_END = "current-1#end_time";
+    public static final String CHANNEL_C2_END = "current-2#end_time";
+    public static final String CHANNEL_C3_END = "current-3#end_time";
+
+    public static final String CHANNEL_C1_LEVEL = "current-1#level";
+    public static final String CHANNEL_C2_LEVEL = "current-2#level";
+    public static final String CHANNEL_C3_LEVEL = "current-3#level";
+
 }

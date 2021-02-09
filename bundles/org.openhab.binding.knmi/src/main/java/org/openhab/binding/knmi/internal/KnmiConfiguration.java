@@ -12,15 +12,18 @@
  */
 package org.openhab.binding.knmi.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link KnmiConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Daniël van Os - Initial contribution
  */
+@NonNullByDefault
 public class KnmiConfiguration {
 
     /**
      * Sample configuration parameter. Replace with your own.
      */
-    public String config1;
+    public String config1 = "";
 }

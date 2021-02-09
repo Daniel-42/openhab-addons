@@ -4,29 +4,85 @@
 	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
 	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-	<!-- Sample Thing Type -->
-	<thing-type id="sample">
-		<label>knmi Binding Thing</label>
-		<description>Sample thing for knmi Binding</description>
+	<!-- Weather Warnings Thing Type for Overijssel -->
+	<thing-type id="warnings-overijssel">
+		<label>Overijssel Weather Warnings</label>
+		<description>Thing for KNMI Binding that provides weather warnings for Overijssel.</description>
 
-		<channels>
-			<channel id="channel1" typeId="sample-channel"/>
-		</channels>
-
-		<config-description>
-			<parameter name="config1" type="text" required="true">
-				<label>Sample Parameter</label>
-				<description>This is a sample text configuration parameter</description>
-			</parameter>
-		</config-description>
+		<channel-groups>
+			<channel-group id="national" typeId="nationalGroup"/>
+			<channel-group id="current-1" typeId="warningGroup"/>
+			<channel-group id="current-2" typeId="warningGroup"/>
+			<channel-group id="current-3" typeId="warningGroup"/>
+			<channel-group id="upcoming-1" typeId="warningGroup"/>
+			<channel-group id="upcoming-2" typeId="warningGroup"/>
+			<channel-group id="upcoming-3" typeId="warningGroup"/>
+		</channel-groups>
 
 	</thing-type>
 
-	<!-- Sample Channel Type -->
-	<channel-type id="sample-channel">
-		<item-type>knmiItem</item-type>
-		<label>knmi Binding Channel</label>
-		<description>Sample channel for knmi Binding</description>
+	<!-- Weather Warnings Thing Type for Gelderland -->
+	<thing-type id="warnings-gelderland">
+		<label>Gelderland Weather Warnings</label>
+		<description>Thing for KNMI Binding that provides weather warnings for Gelderland.</description>
+
+		<channel-groups>
+			<channel-group id="national" typeId="nationalGroup"/>
+			<channel-group id="current-1" typeId="warningGroup"/>
+			<channel-group id="current-2" typeId="warningGroup"/>
+			<channel-group id="current-3" typeId="warningGroup"/>
+			<channel-group id="upcoming-1" typeId="warningGroup"/>
+			<channel-group id="upcoming-2" typeId="warningGroup"/>
+			<channel-group id="upcoming-3" typeId="warningGroup"/>
+		</channel-groups>
+
+	</thing-type>
+
+	<channel-group-type id="nationalGroup">
+		<label>General Warning Information</label>
+		<description>A general summary of current nationwide warnings.</description>
+		<channels>
+			<channel id="summary" typeId="warning_text"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-group-type id="warningGroup">
+		<label>Warning</label>
+		<description>Information about a single warning.</description>
+		<channels>
+			<channel id="level" typeId="warning_level"/>
+			<channel id="start_time" typeId="warning_start"/>
+			<channel id="end_time" typeId="warning_end"/>
+			<channel id="description" typeId="warning_text"/>
+		</channels>
+	</channel-group-type>
+
+	<channel-type id="warning_text">
+		<item-type>String</item-type>
+		<label>Text</label>
+		<description>Description of the warning.</description>
+        <category>Text</category>
+	</channel-type>
+
+	<channel-type id="warning_level">
+		<item-type>Number</item-type>
+		<label>Level</label>
+		<description>Level of the warning. (0 = green, 1 = yellow, 2 = orange, 3 = red)</description>
+        <category>Alarm</category>
+	</channel-type>
+
+	<channel-type id="warning_start">
+		<item-type>DateTime</item-type>
+        <label>Start</label>
+		<description>Start time of the warning.</description>
+        <category>Time</category>
+	</channel-type>
+
+	<channel-type id="warning_end">
+		<item-type>DateTime</item-type>
+		<label>End</label>
+		<description>End time of the warning.</description>
+        <category>Time</category>
 	</channel-type>
 
 </thing:thing-descriptions>

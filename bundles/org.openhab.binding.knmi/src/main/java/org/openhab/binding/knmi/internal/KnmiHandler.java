@@ -12,16 +12,14 @@
  */
 package org.openhab.binding.knmi.internal;
 
-import static org.openhab.binding.knmi.internal.KnmiBindingConstants.*;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
-import org.openhab.core.types.RefreshType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +34,8 @@ public class KnmiHandler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(KnmiHandler.class);
 
+    private String thingItemTitle = "";
+
     private @Nullable KnmiConfiguration config;
 
     public KnmiHandler(Thing thing) {
@@ -44,23 +44,17 @@ public class KnmiHandler extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        if (CHANNEL_1.equals(channelUID.getId())) {
-            if (command instanceof RefreshType) {
-                // TODO: handle data refresh
-            }
-
-            // TODO: handle command
-
-            // Note: if communication with thing fails for some reason,
-            // indicate that by setting the status with detail information:
-            // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-            // "Could not control device at IP address x.x.x.x");
-        }
     }
 
     @Override
     public void initialize() {
         config = getConfigAs(KnmiConfiguration.class);
+
+        if (KnmiBindingConstants.THING_HEADER_MAP.containsKey(thing.getThingTypeUID())) {
+            thingItemTitle = "Waarschuwingen " + KnmiBindingConstants.THING_HEADER_MAP.get(thing.getThingTypeUID());
+        } else {
+            logger.warn("Unmapped ThingTypeUID {}", thing.getThingTypeUID());
+        }
 
         // TODO: Initialize the handler.
         // The framework requires you to return from this method quickly. Also, before leaving this method a thing
@@ -73,28 +67,8 @@ public class KnmiHandler extends BaseThingHandler {
         // set the thing status to UNKNOWN temporarily and let the background task decide for the real status.
         // the framework is then able to reuse the resources from the thing handler initialization.
         // we set this upfront to reliably check status updates in unit tests.
-        updateStatus(ThingStatus.UNKNOWN);
+        updateStatus(ThingStatus.ONLINE);
 
-        // Example for background initialization:
-        scheduler.execute(() -> {
-            boolean thingReachable = true; // <background task with long running initialization here>
-            // when done do:
-            if (thingReachable) {
-                updateStatus(ThingStatus.ONLINE);
-            } else {
-                updateStatus(ThingStatus.OFFLINE);
-            }
-        });
-
-        // These logging types should be primarily used by bindings
-        // logger.trace("Example trace message");
-        // logger.debug("Example debug message");
-        // logger.warn("Example warn message");
-
-        // Note: When initialization can NOT be done set the status with more details for further
-        // analysis. See also class ThingStatusDetail for all available status details.
-        // Add a description to give user information to understand why thing does not work as expected. E.g.
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-        // "Can not access device as username and/or password are invalid");
+        updateState(KnmiBindingConstants.CHANNEL_C1_LEVEL, new DecimalType(0));
     }
 }

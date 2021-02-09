@@ -12,6 +12,6 @@
 
   <artifactId>org.openhab.binding.knmi</artifactId>
 
-  <name>openHAB Add-ons :: Bundles :: knmi Binding</name>
+  <name>openHAB Add-ons :: Bundles :: Knmi Binding</name>
 
 </project>

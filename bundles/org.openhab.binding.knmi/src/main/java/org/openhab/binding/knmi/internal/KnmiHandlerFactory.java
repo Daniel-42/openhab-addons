@@ -35,7 +35,8 @@ import org.osgi.service.component.annotations.Component;
 @Component(configurationPid = "binding.knmi", service = ThingHandlerFactory.class)
 public class KnmiHandlerFactory extends BaseThingHandlerFactory {
 
-    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_SAMPLE);
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_OVERIJSSEL,
+            THING_TYPE_GELDERLAND);
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
@@ -46,7 +47,7 @@ public class KnmiHandlerFactory extends BaseThingHandlerFactory {
     protected @Nullable ThingHandler createHandler(Thing thing) {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (THING_TYPE_SAMPLE.equals(thingTypeUID)) {
+        if (SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID)) {
             return new KnmiHandler(thing);
         }
 
