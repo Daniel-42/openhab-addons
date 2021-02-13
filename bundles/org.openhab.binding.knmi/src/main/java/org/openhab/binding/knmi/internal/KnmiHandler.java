@@ -16,14 +16,20 @@ import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.knmi.data.Item;
+import org.openhab.binding.knmi.data.UrgencyComparator;
+import org.openhab.binding.knmi.data.Warning;
 import org.openhab.binding.knmi.data.Warnings;
 import org.openhab.core.io.net.http.HttpUtil;
+import org.openhab.core.library.types.DateTimeType;
+import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
@@ -47,6 +53,8 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 public class KnmiHandler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(KnmiHandler.class);
+    private final UrgencyComparator urgencyComparator = new UrgencyComparator();
+
     private @Nullable ScheduledFuture<?> pollingJob;
 
     private String thingItemTitle = "";
@@ -133,43 +141,86 @@ public class KnmiHandler extends BaseThingHandler {
             if (xstream != null) {
                 Warnings warnings = (Warnings) xstream.fromXML(result);
 
-                logger.warn("Channel Title: {}", warnings.getChannel().getTitle());
+                // If we get as far as this, we're online
+                updateStatus(ThingStatus.ONLINE);
 
                 for (Item i : warnings.getChannel().getItems()) {
                     if (i.getTitle().equals(thingItemTitle)) {
-                        logger.warn("Res: {}", i.getTitle());
+
+                        ArrayList<Warning> currentWarnings = new ArrayList<Warning>();
+                        ArrayList<Warning> futureWarnings = new ArrayList<Warning>();
+
                         String des = i.getDescription();
                         String[] tokens = des.split("<br><br>");
                         for (String token : tokens) {
                             String[] subtokens = token.split("<p>|<br>| \\(van | uur\\)");
-                            for (String subtoken : subtokens) {
-                                logger.warn("    : {}", subtoken.trim());
+                            if (subtokens.length != 4) {
+                                continue;
                             }
 
-                            if (subtokens.length > 0) {
-                                String[] dateTokens = subtokens[subtokens.length - 1].split(" tot ");
-                                for (String dateToken : dateTokens) {
-                                    logger.warn("    : {}", dateToken.trim());
-                                }
-                                if (dateTokens.length == 2) {
-                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-                                            .withZone(ZoneId.of("UTC+1"));
-                                    ZonedDateTime start = ZonedDateTime.parse(dateTokens[0], formatter);
-                                    ZonedDateTime end = ZonedDateTime.parse(dateTokens[1], formatter);
-                                    logger.warn("    : {} --> {}", start, end);
-                                }
+                            Warning w = new Warning();
+                            w.setLevel(subtokens[0]);
+                            w.setTitle(subtokens[1]);
+                            w.setDescription(subtokens[2]);
+
+                            String[] dateTokens = subtokens[3].split(" tot ");
+                            if (dateTokens.length != 2) {
+                                continue;
+                            }
+
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+                                    .withZone(ZoneId.of("UTC+1"));
+                            ZonedDateTime start = ZonedDateTime.parse(dateTokens[0], formatter);
+                            ZonedDateTime end = ZonedDateTime.parse(dateTokens[1], formatter);
+                            w.setValidity(start, end);
+
+                            if (w.isExpired()) {
+                                continue;
+                            }
+
+                            if (w.isFuture()) {
+                                futureWarnings.add(w);
+                            } else if (w.isCurrent()) {
+                                currentWarnings.add(w);
                             }
                         }
+
+                        currentWarnings.sort(urgencyComparator);
+                        updateWarningStates("current", currentWarnings);
+
+                        futureWarnings.sort(urgencyComparator);
+                        updateWarningStates("future", futureWarnings);
+
                     } else if (!i.getTitle().startsWith("Waarschuwingen")) {
                         logger.warn("Summary: {}", i.getTitle());
                     }
                 }
             }
         } catch (Exception e) {
-            logger.warn("XML could not by parsed. {}", e);
+            logger.warn("XML could not be parsed. {}", e);
         }
+    }
 
-        // updateState(KnmiBindingConstants.CHANNEL_C1_LEVEL, new DecimalType(0));
+    private void updateWarningStates(String channelHeader, ArrayList<Warning> warnings) {
+        Warning emptyWarning = new Warning();
 
+        for (int i = 1; i < 4; i++) {
+            Warning w = emptyWarning;
+            if (i <= warnings.size()) {
+                w = warnings.get(i - 1);
+            }
+
+            updateState(String.format(KnmiBindingConstants.CHANNEL_N_START, channelHeader, i),
+                    new DateTimeType(w.getStartDateTime()));
+            updateState(String.format(KnmiBindingConstants.CHANNEL_N_END, channelHeader, i),
+                    new DateTimeType(w.getEndDateTime()));
+            updateState(String.format(KnmiBindingConstants.CHANNEL_N_LEVEL, channelHeader, i),
+                    new DecimalType(w.getLevel()));
+            updateState(String.format(KnmiBindingConstants.CHANNEL_N_TITLE, channelHeader, i),
+                    new StringType(w.getTitle()));
+            updateState(String.format(KnmiBindingConstants.CHANNEL_N_DESCRIPTION, channelHeader, i),
+                    new StringType(w.getDescription()));
+
+        }
     }
 }

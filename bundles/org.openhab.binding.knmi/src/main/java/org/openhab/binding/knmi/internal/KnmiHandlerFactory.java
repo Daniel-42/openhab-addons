@@ -35,8 +35,11 @@ import org.osgi.service.component.annotations.Component;
 @Component(configurationPid = "binding.knmi", service = ThingHandlerFactory.class)
 public class KnmiHandlerFactory extends BaseThingHandlerFactory {
 
-    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_OVERIJSSEL,
-            THING_TYPE_GELDERLAND);
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS = Set.of(THING_TYPE_GRONINGEN,
+            THING_TYPE_FRIESLAND, THING_TYPE_DRENTHE, THING_TYPE_NOORDHOLLAND, THING_TYPE_FLEVOLAND,
+            THING_TYPE_OVERIJSSEL, THING_TYPE_GELDERLAND, THING_TYPE_UTRECHT, THING_TYPE_ZUIDHOLLAND,
+            THING_TYPE_ZEELAND, THING_TYPE_NOORDBRABANT, THING_TYPE_LIMBURG, THING_TYPE_WADDENZEE,
+            THING_TYPE_IJSSELMEERGEBIED);
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {

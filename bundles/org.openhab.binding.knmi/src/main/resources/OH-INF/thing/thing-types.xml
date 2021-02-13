@@ -1,88 +1,287 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thing:thing-descriptions bindingId="knmi"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
-	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+    xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
 
-	<!-- Weather Warnings Thing Type for Overijssel -->
-	<thing-type id="warnings-overijssel">
-		<label>Overijssel Weather Warnings</label>
-		<description>Thing for KNMI Binding that provides weather warnings for Overijssel.</description>
+    <!-- Weather Warnings Thing Type for the Wadden Eilanden -->
+    <thing-type id="knmi-warnings-waddeneilanden">
+        <label>Waddeneilanden Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for the Waddeneilanden.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
 
-		<channel-groups>
-			<channel-group id="national" typeId="nationalGroup"/>
-			<channel-group id="current-1" typeId="warningGroup"/>
-			<channel-group id="current-2" typeId="warningGroup"/>
-			<channel-group id="current-3" typeId="warningGroup"/>
-			<channel-group id="upcoming-1" typeId="warningGroup"/>
-			<channel-group id="upcoming-2" typeId="warningGroup"/>
-			<channel-group id="upcoming-3" typeId="warningGroup"/>
-		</channel-groups>
+    <!-- Weather Warnings Thing Type for Groningen -->
+    <thing-type id="knmi-warnings-groningen">
+        <label>Groningen Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Groningen.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
 
-	</thing-type>
+    <!-- Weather Warnings Thing Type for Friesland -->
+    <thing-type id="knmi-warnings-friesland">
+        <label>Friesland Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Friesland.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
 
-	<!-- Weather Warnings Thing Type for Gelderland -->
-	<thing-type id="warnings-gelderland">
-		<label>Gelderland Weather Warnings</label>
-		<description>Thing for KNMI Binding that provides weather warnings for Gelderland.</description>
+    <!-- Weather Warnings Thing Type for Drenthe -->
+    <thing-type id="knmi-warnings-denthe">
+        <label>Drenthe Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Drenthe.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
 
-		<channel-groups>
-			<channel-group id="national" typeId="nationalGroup"/>
-			<channel-group id="current-1" typeId="warningGroup"/>
-			<channel-group id="current-2" typeId="warningGroup"/>
-			<channel-group id="current-3" typeId="warningGroup"/>
-			<channel-group id="upcoming-1" typeId="warningGroup"/>
-			<channel-group id="upcoming-2" typeId="warningGroup"/>
-			<channel-group id="upcoming-3" typeId="warningGroup"/>
-		</channel-groups>
+    <!-- Weather Warnings Thing Type for Noord Holland -->
+    <thing-type id="noordholland">
+        <label>Noord-Holland Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Noord-Holland.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
 
-	</thing-type>
+    <!-- Weather Warnings Thing Type for Flevoland -->
+    <thing-type id="flevoland">
+        <label>Flevoland Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Flevoland.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
 
-	<channel-group-type id="nationalGroup">
-		<label>General Warning Information</label>
-		<description>A general summary of current nationwide warnings.</description>
-		<channels>
-			<channel id="summary" typeId="warning_text"/>
-		</channels>
-	</channel-group-type>
+    <!-- Weather Warnings Thing Type for Overijssel -->
+    <thing-type id="knmi-warnings-overijssel">
+        <label>Overijssel Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Overijssel.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
 
-	<channel-group-type id="warningGroup">
-		<label>Warning</label>
-		<description>Information about a single warning.</description>
-		<channels>
-			<channel id="level" typeId="warning_level"/>
-			<channel id="start_time" typeId="warning_start"/>
-			<channel id="end_time" typeId="warning_end"/>
-			<channel id="description" typeId="warning_text"/>
-		</channels>
-	</channel-group-type>
+    <!-- Weather Warnings Thing Type for Gelderland -->
+    <thing-type id="knmi-warnings-gelderland">
+        <label>Gelderland Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Gelderland.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
 
-	<channel-type id="warning_text">
-		<item-type>String</item-type>
-		<label>Text</label>
-		<description>Description of the warning.</description>
+    <!-- Weather Warnings Thing Type for Utrecht -->
+    <thing-type id="knmi-warnings-utrecht">
+        <label>Utrecht Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Utrecht.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
+
+    <!-- Weather Warnings Thing Type for Zuid-Holland -->
+    <thing-type id="knmi-warnings-zuidholland">
+        <label>Zuid-Holland Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Zuid-Holland.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
+
+    <!-- Weather Warnings Thing Type for Zeeland -->
+    <thing-type id="knmi-warnings-zeeland">
+        <label>Zeeland Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Zeeland.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
+
+    <!-- Weather Warnings Thing Type for Noord-Brabant -->
+    <thing-type id="knmi-warnings-noordbrabant">
+        <label>Noord-Brabant Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Noord-Brabant.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
+
+    <!-- Weather Warnings Thing Type for Limburg -->
+    <thing-type id="knmi-warnings-limburg">
+        <label>Limburg Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for Limburg.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
+
+    <!-- Weather Warnings Thing Type for the Waddenzee -->
+    <thing-type id="knmi-warnings-waddenzee">
+        <label>Waddenzee Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for the Waddenzee.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
+    
+    <!-- Weather Warnings Thing Type for the IJsselmeergebied -->
+    <thing-type id="knmi-warnings-ijsselmeergebied">
+        <label>IJsselmeergebied Weather Warnings</label>
+        <description>Thing for KNMI Binding that provides weather warnings for the IJsselmeergebied.</description>
+        <channel-groups>
+            <channel-group id="national" typeId="nationalGroup"><label>National Warning Summary</label></channel-group>
+            <channel-group id="current-1" typeId="warningGroup"><label>Current Warning 1</label></channel-group>
+            <channel-group id="current-2" typeId="warningGroup"><label>Current Warning 2</label></channel-group>
+            <channel-group id="current-3" typeId="warningGroup"><label>Current Warning 3</label></channel-group>
+            <channel-group id="future-1" typeId="warningGroup"><label>Future Warning 1</label></channel-group>
+            <channel-group id="future-2" typeId="warningGroup"><label>Future Warning 2</label></channel-group>
+            <channel-group id="future-3" typeId="warningGroup"><label>Future Warning 3</label></channel-group>
+        </channel-groups>
+    </thing-type>
+    
+    <channel-group-type id="nationalGroup">
+        <label>General Warning Information</label>
+        <description>A general summary of current nationwide warnings.</description>
+        <channels>
+            <channel id="summary" typeId="warning_text"/>
+        </channels>
+    </channel-group-type>
+
+    <channel-group-type id="warningGroup">
+        <label>Warning</label>
+        <description>Information about a single warning.</description>
+        <channels>
+            <channel id="level" typeId="warning_level"/>
+            <channel id="start_time" typeId="warning_start"/>
+            <channel id="end_time" typeId="warning_end"/>
+            <channel id="title" typeId="warning_title"/>
+            <channel id="description" typeId="warning_text"/>
+        </channels>
+    </channel-group-type>
+
+    <channel-type id="warning_title">
+        <item-type>String</item-type>
+        <label>Warning Title</label>
+        <description>Title for the warning.</description>
         <category>Text</category>
-	</channel-type>
+    </channel-type>
 
-	<channel-type id="warning_level">
-		<item-type>Number</item-type>
-		<label>Level</label>
-		<description>Level of the warning. (0 = green, 1 = yellow, 2 = orange, 3 = red)</description>
+    <channel-type id="warning_text">
+        <item-type>String</item-type>
+        <label>Warning Description</label>
+        <description>Description of the warning.</description>
+        <category>Text</category>
+    </channel-type>
+
+    <channel-type id="warning_level">
+        <item-type>Number</item-type>
+        <label>Warning Level</label>
+        <description>Level of the warning. (0 = green, 1 = yellow, 2 = orange, 3 = red)</description>
         <category>Alarm</category>
-	</channel-type>
+    </channel-type>
 
-	<channel-type id="warning_start">
-		<item-type>DateTime</item-type>
-        <label>Start</label>
-		<description>Start time of the warning.</description>
+    <channel-type id="warning_start">
+        <item-type>DateTime</item-type>
+        <label>Warning Start</label>
+        <description>Start time of the warning.</description>
         <category>Time</category>
-	</channel-type>
+    </channel-type>
 
-	<channel-type id="warning_end">
-		<item-type>DateTime</item-type>
-		<label>End</label>
-		<description>End time of the warning.</description>
+    <channel-type id="warning_end">
+        <item-type>DateTime</item-type>
+        <label>Warning End</label>
+        <description>End time of the warning.</description>
         <category>Time</category>
-	</channel-type>
+    </channel-type>
 
 </thing:thing-descriptions>
