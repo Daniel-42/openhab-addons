@@ -12,15 +12,17 @@
  */
 package org.openhab.binding.knmi.data;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 @NonNullByDefault
 public class Warning {
+    private static ZonedDateTime onceUponALongAgo = ZonedDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
 
-    private ZonedDateTime startDateTime = ZonedDateTime.now();
-    private ZonedDateTime endDateTime = ZonedDateTime.now();
+    private ZonedDateTime startDateTime = onceUponALongAgo;
+    private ZonedDateTime endDateTime = onceUponALongAgo;
     private int level = 0;
     private String title = "";
     private String description = "";

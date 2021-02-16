@@ -54,6 +54,7 @@ public class KnmiHandler extends BaseThingHandler {
 
     private final Logger logger = LoggerFactory.getLogger(KnmiHandler.class);
     private final UrgencyComparator urgencyComparator = new UrgencyComparator();
+    private final Warning emptyWarning = new Warning();
 
     private @Nullable ScheduledFuture<?> pollingJob;
 
@@ -133,7 +134,7 @@ public class KnmiHandler extends BaseThingHandler {
 
         if (result.trim().isEmpty()) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                    "P1 Meter API returned empty status");
+                    "KNMI RSS Feed returned empty feed.");
             return;
         }
 
@@ -170,8 +171,11 @@ public class KnmiHandler extends BaseThingHandler {
 
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
                                     .withZone(ZoneId.of("UTC+1"));
-                            ZonedDateTime start = ZonedDateTime.parse(dateTokens[0], formatter);
-                            ZonedDateTime end = ZonedDateTime.parse(dateTokens[1], formatter);
+
+                            // Times in the RSS feed are always one hour later than what is shown on the
+                            // KNMI website (which does show local time) I've informed KNMI about this
+                            ZonedDateTime start = ZonedDateTime.parse(dateTokens[0], formatter).minusHours(1);
+                            ZonedDateTime end = ZonedDateTime.parse(dateTokens[1], formatter).minusHours(1);
                             w.setValidity(start, end);
 
                             if (w.isExpired()) {
@@ -192,7 +196,7 @@ public class KnmiHandler extends BaseThingHandler {
                         updateWarningStates("future", futureWarnings);
 
                     } else if (!i.getTitle().startsWith("Waarschuwingen")) {
-                        logger.warn("Summary: {}", i.getTitle());
+                        // logger.warn("Summary: {}", i.getTitle());
                     }
                 }
             }
@@ -202,7 +206,6 @@ public class KnmiHandler extends BaseThingHandler {
     }
 
     private void updateWarningStates(String channelHeader, ArrayList<Warning> warnings) {
-        Warning emptyWarning = new Warning();
 
         for (int i = 1; i < 4; i++) {
             Warning w = emptyWarning;
@@ -210,17 +213,16 @@ public class KnmiHandler extends BaseThingHandler {
                 w = warnings.get(i - 1);
             }
 
+            updateState(String.format(KnmiBindingConstants.CHANNEL_N_LEVEL, channelHeader, i),
+                    new DecimalType(w.getLevel()));
             updateState(String.format(KnmiBindingConstants.CHANNEL_N_START, channelHeader, i),
                     new DateTimeType(w.getStartDateTime()));
             updateState(String.format(KnmiBindingConstants.CHANNEL_N_END, channelHeader, i),
                     new DateTimeType(w.getEndDateTime()));
-            updateState(String.format(KnmiBindingConstants.CHANNEL_N_LEVEL, channelHeader, i),
-                    new DecimalType(w.getLevel()));
             updateState(String.format(KnmiBindingConstants.CHANNEL_N_TITLE, channelHeader, i),
                     new StringType(w.getTitle()));
             updateState(String.format(KnmiBindingConstants.CHANNEL_N_DESCRIPTION, channelHeader, i),
                     new StringType(w.getDescription()));
-
         }
     }
 }

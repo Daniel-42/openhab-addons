@@ -275,6 +275,7 @@
         <label>Warning Start</label>
         <description>Start time of the warning.</description>
         <category>Time</category>
+        <state readOnly="true" pattern="%1$tF %1$tR"/>
     </channel-type>
 
     <channel-type id="warning_end">
@@ -282,6 +283,7 @@
         <label>Warning End</label>
         <description>End time of the warning.</description>
         <category>Time</category>
+        <state readOnly="true" pattern="%1$tF %1$tR"/>
     </channel-type>
 
 </thing:thing-descriptions>

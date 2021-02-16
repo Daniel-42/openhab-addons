@@ -27,7 +27,7 @@ public class UrgencyComparator implements Comparator<Warning> {
             }
             return w1.getStartDateTime().isBefore(w2.getStartDateTime()) ? -1 : 1;
         } else {
-            return (w1.getLevel() - w2.getLevel());
+            return (w2.getLevel() - w1.getLevel());
         }
     }
 }
