@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="sonybravia"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Sample Thing Type -->
+	<thing-type id="sony-bravia-tv">
+		<label>Sony Bravia TV</label>
+		<description>This thing allows you to control a Sony Bravia TV using the Simple IP Control protocol.</description>
+
+		<channels>
+			<channel id="power" typeId="power-channel"/>
+		</channels>
+
+		<config-description>
+			<parameter name="config1" type="text" required="true">
+				<label>Sample Parameter</label>
+				<description>This is a sample text configuration parameter</description>
+			</parameter>
+		</config-description>
+
+	</thing-type>
+
+	<!-- Sample Channel Type -->
+	<channel-type id="power-channel">
+		<item-type>Switch</item-type>
+		<label>Power</label>
+		<description>On/off switch for the TV.</description>
+	</channel-type>
+
+</thing:thing-descriptions>
