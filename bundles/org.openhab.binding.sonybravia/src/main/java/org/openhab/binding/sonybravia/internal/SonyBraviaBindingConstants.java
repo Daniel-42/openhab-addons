@@ -31,4 +31,6 @@ public class SonyBraviaBindingConstants {
 
     // List of all Channel ids
     public static final String CHANNEL_POWER = "power";
+    public static final String CHANNEL_VOLUME = "volume";
+    public static final String CHANNEL_MUTE = "mute";
 }

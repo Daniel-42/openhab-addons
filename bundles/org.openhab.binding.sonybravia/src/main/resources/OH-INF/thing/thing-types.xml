@@ -11,6 +11,8 @@
 
 		<channels>
 			<channel id="power" typeId="power-channel"/>
+            <channel id="volume" typeId="volume-channel"/>
+            <channel id="mute" typeId="mute-channel"/>
 		</channels>
 
 		<config-description>
@@ -22,11 +24,25 @@
 
 	</thing-type>
 
-	<!-- Sample Channel Type -->
+	<!-- Power Channel Type -->
 	<channel-type id="power-channel">
 		<item-type>Switch</item-type>
 		<label>Power</label>
 		<description>On/off switch for the TV.</description>
 	</channel-type>
+	
+    <!-- Volume Channel Type -->
+    <channel-type id="volume-channel">
+        <item-type>Dimmer</item-type>
+        <label>Volume</label>
+        <description>Volume for the TV.</description>
+    </channel-type>
+	
+    <!-- Mute Channel Type -->
+    <channel-type id="mute-channel">
+        <item-type>Switch</item-type>
+        <label>Mute Audio</label>
+        <description>Switch for the muting the audio of TV.</description>
+    </channel-type>
 
 </thing:thing-descriptions>

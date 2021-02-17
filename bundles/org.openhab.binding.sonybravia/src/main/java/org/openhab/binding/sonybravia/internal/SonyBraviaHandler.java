@@ -16,6 +16,13 @@ import static org.openhab.binding.sonybravia.internal.SonyBraviaBindingConstants
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sonybravia.connection.SimpleIpClient;
+import org.openhab.binding.sonybravia.connection.SimpleIpCommand;
+import org.openhab.binding.sonybravia.connection.SimpleIpEventListener;
+import org.openhab.binding.sonybravia.connection.SimpleIpMessage;
+import org.openhab.binding.sonybravia.connection.SimpleIpMessageType;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
@@ -32,11 +39,12 @@ import org.slf4j.LoggerFactory;
  * @author Daniël van Os - Initial contribution
  */
 @NonNullByDefault
-public class SonyBraviaHandler extends BaseThingHandler {
+public class SonyBraviaHandler extends BaseThingHandler implements SimpleIpEventListener {
 
     private final Logger logger = LoggerFactory.getLogger(SonyBraviaHandler.class);
 
     private @Nullable SonyBraviaConfiguration config;
+    private @Nullable SimpleIpClient connection;
 
     public SonyBraviaHandler(Thing thing) {
         super(thing);
@@ -60,41 +68,129 @@ public class SonyBraviaHandler extends BaseThingHandler {
 
     @Override
     public void initialize() {
+        // WILL BE USED FOR IP AND PORT
         config = getConfigAs(SonyBraviaConfiguration.class);
-
-        // TODO: Initialize the handler.
-        // The framework requires you to return from this method quickly. Also, before leaving this method a thing
-        // status from one of ONLINE, OFFLINE or UNKNOWN must be set. This might already be the real thing status in
-        // case you can decide it directly.
-        // In case you can not decide the thing status directly (e.g. for long running connection handshake using WAN
-        // access or similar) you should set status UNKNOWN here and then decide the real status asynchronously in the
-        // background.
-
-        // set the thing status to UNKNOWN temporarily and let the background task decide for the real status.
-        // the framework is then able to reuse the resources from the thing handler initialization.
-        // we set this upfront to reliably check status updates in unit tests.
         updateStatus(ThingStatus.UNKNOWN);
 
-        // Example for background initialization:
-        scheduler.execute(() -> {
-            boolean thingReachable = true; // <background task with long running initialization here>
-            // when done do:
-            if (thingReachable) {
-                updateStatus(ThingStatus.ONLINE);
-            } else {
-                updateStatus(ThingStatus.OFFLINE);
-            }
-        });
+        SimpleIpClient connection = new SimpleIpClient("10.42.1.51", 20060);
+        connection.addEventListener(this);
+        connection.openConnection();
+        this.connection = connection;
+        if (connection.isConnected()) {
+            updateStatus(ThingStatus.ONLINE);
 
-        // These logging types should be primarily used by bindings
-        // logger.trace("Example trace message");
-        // logger.debug("Example debug message");
-        // logger.warn("Example warn message");
-
-        // Note: When initialization can NOT be done set the status with more details for further
-        // analysis. See also class ThingStatusDetail for all available status details.
-        // Add a description to give user information to understand why thing does not work as expected. E.g.
-        // updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
-        // "Can not access device as username and/or password are invalid");
+            connection.send(SimpleIpCommand.AUDIO_VOLUME_GET, SimpleIpCommand.AUDIO_VOLUME_GET.getValue());
+        }
     }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        if (connection != null) {
+            var cnx = connection;
+            cnx.removeEventListener(this);
+            cnx.closeConnection();
+        }
+    }
+
+    @Override
+    public void statusUpdateReceived(String ip, SimpleIpMessage data) {
+        logger.warn("Received: {}", data.toString());
+
+        SimpleIpMessageType type = data.getMessageType();
+        switch (type) {
+            case NOTIFY:
+                handleNotification(data);
+                break;
+            case ANSWER:
+                handleAnswer(data);
+                break;
+            default:
+            case CONTROL:
+            case ENQUIRY:
+                // ignore, should not happen
+                break;
+        }
+    }
+
+    private void handleAnswer(SimpleIpMessage data) {
+        SimpleIpCommand command = data.getCommand();
+        switch (command) {
+            case POWER_STATUS_ANSWER:
+                if (data.getValue().equals(SimpleIpCommand.Constants.ERROR_PARAMETER)) {
+                    logger.warn("Answer: Power Status = ERROR");
+                } else {
+                    // tricky... answer 0 to set == success, answer 0 to get == off
+                    boolean isOn = Integer.parseInt(data.getValue()) == 1 ? true : false;
+                    logger.warn("Answer: Power Status = {}", isOn);
+                    updateState(SonyBraviaBindingConstants.CHANNEL_POWER, OnOffType.from(isOn));
+                }
+                break;
+            case AUDIO_VOLUME_ANSWER:
+                if (data.getValue().equals(SimpleIpCommand.Constants.ERROR_PARAMETER)) {
+                    logger.warn("Answer: Audio Volume = ERROR");
+                } else {
+                    int volume = Integer.parseInt(data.getValue());
+                    logger.warn("Answer: Audio Volume = {}", volume);
+                    updateState(SonyBraviaBindingConstants.CHANNEL_VOLUME, new PercentType(volume));
+                }
+                break;
+            case AUDIO_MUTE_ANSWER:
+                if (data.getValue().equals(SimpleIpCommand.Constants.ERROR_PARAMETER)) {
+                    logger.warn("Answer: Audio Mute = ERROR");
+                } else {
+                    boolean isOn = Integer.parseInt(data.getValue()) == 1 ? true : false;
+                    logger.warn("Answer: Audio Mute = {}", isOn);
+                    updateState(SonyBraviaBindingConstants.CHANNEL_MUTE, OnOffType.from(isOn));
+                }
+                break;
+            case INPUT_ANSWER:
+                if (data.getValue().equals(SimpleIpCommand.Constants.ERROR_PARAMETER)) {
+                    logger.warn("Answer: Input = ERROR");
+                } else if (data.getValue().equals(SimpleIpCommand.Constants.NOT_FOUND)) {
+                    logger.warn("Answer: Input = NOT FOUND");
+                } else {
+                    int input = Integer.parseInt(data.getValue().substring(0, 8));
+                    int subInput = Integer.parseInt(data.getValue().substring(8, 16));
+                    logger.warn("Answer: Input = {}/{}", input, subInput);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void handleNotification(SimpleIpMessage data) {
+        SimpleIpCommand command = data.getCommand();
+        switch (command) {
+            case FIRE_POWER_CHANGE:
+                logger.warn("Notification: Power Status = {}", Integer.parseInt(data.getValue()));
+                break;
+            case FIRE_VOLUME_CHANGE:
+                logger.warn("Notification: Audio Volume = {}", Integer.parseInt(data.getValue()));
+                break;
+            case FIRE_MUTE_CHANGE:
+                logger.warn("Notification: Audio Mute = {}", Integer.parseInt(data.getValue()));
+                break;
+            case FIRE_INPUT_CHANGE:
+                int input = Integer.parseInt(data.getValue().substring(0, 8));
+                int subInput = Integer.parseInt(data.getValue().substring(8, 16));
+                logger.warn("Notification: Input = {}/{}", input, subInput);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Handler for connection errors.
+     *
+     * @param errorMsg Reason for error.
+     */
+    @Override
+    public void connectionError(String ip, String errorMsg) {
+        logger.warn("Connection Error: {}", errorMsg);
+        updateStatus(ThingStatus.OFFLINE);
+    }
+
 }
