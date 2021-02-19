@@ -31,7 +31,7 @@
 			<parameter name="refreshDelay" type="integer" min="1">
 				<label>Refresh Interval</label>
 				<description>The refresh interval in seconds for polling the inverter.</description>
-				<default>5</default>
+				<default>30</default>
 			</parameter>
 		</config-description>
 	</thing-type>
@@ -69,10 +69,6 @@
         <channels>
             <channel id="yield_day_current" typeId="yield_day_current"/>
             <channel id="yield_day_previous" typeId="yield_day_previous"/>
-            <channel id="yield_month_current" typeId="yield_month_current"/>
-            <channel id="yield_month_previous" typeId="yield_month_previous"/>
-            <channel id="yield_year_current" typeId="yield_year_current"/>
-            <channel id="yield_year_previous" typeId="yield_year_previous"/>
         </channels>
     </channel-group-type>
 
@@ -80,110 +76,112 @@
 		<item-type>Number:ElectricPotential</item-type>
 		<label>AC Voltage</label>
 		<description>This channel provides the current AC Voltage in V.</description>
+		<category>Energy</category>
+        <state readOnly="true" pattern="%.1f V"/>
 	</channel-type>
 
     <channel-type id="ac_current">
         <item-type>Number:ElectricCurrent</item-type>
         <label>AC Current</label>
         <description>This channel currently provides the current AC Current in A.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.3f A"/>
     </channel-type>
 
     <channel-type id="ac_power">
         <item-type>Number:Power</item-type>
         <label>AC Power</label>
         <description>This channel provides the current AC Power in W.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.1f W"/>
     </channel-type>
 
     <channel-type id="ac_power_fast">
         <item-type>Number:Power</item-type>
         <label>AC Power Fast</label>
         <description>This channel provides the current AC Power Fast in W.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.1f W"/>
     </channel-type>
 
     <channel-type id="ac_frequency">
         <item-type>Number:Frequency</item-type>
         <label>AC Frequency</label>
         <description>This channel provides the current AC Frequency in Hz.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.1f Hz"/>
     </channel-type>
 
     <channel-type id="dc_voltage">
         <item-type>Number:ElectricPotential</item-type>
         <label>DC Voltage</label>
         <description>This channel provides the current DC Voltage in V.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.1f V"/>
     </channel-type>
 
     <channel-type id="dc_current">
         <item-type>Number:Power</item-type>
         <label>DC Current</label>
         <description>This channel provides the current DC Current in A.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.3f A"/>
     </channel-type>
 
     <channel-type id="link_voltage">
         <item-type>Number:ElectricPotential</item-type>
         <label>Link Voltage</label>
         <description>This channel provides the current Link Voltage in V.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.1f V"/>
     </channel-type>
 
     <channel-type id="yield_day_current">
         <item-type>Number:Energy</item-type>
         <label>Yield Today</label>
         <description>This channel provides the current yield for the current day in KWh.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.3f KWh"/>
     </channel-type>
 
     <channel-type id="yield_day_previous">
         <item-type>Number:Energy</item-type>
         <label>Yield Yesterday</label>
         <description>This channel provides yesterdays total yield in KWh.</description>
-    </channel-type>
-
-    <channel-type id="yield_month_current">
-        <item-type>Number:Energy</item-type>
-        <label>Yield This Month</label>
-        <description>This channel provides the current yield for the current month in KWh. Regardless of settings, this value
-            will only be updated once per hour.</description>
-    </channel-type>
-
-    <channel-type id="yield_month_previous">
-        <item-type>Number:Energy</item-type>
-        <label>Yield Last Month</label>
-        <description>This channel provides last months total yield in KWh.</description>
-    </channel-type>
-
-    <channel-type id="yield_year_current">
-        <item-type>Number:Energy</item-type>
-        <label>Yield This Year</label>
-        <description>This channel provides the current yield for the current year in KWh. Regardless of settings, this value
-            will only be updated once per hour.</description>
-    </channel-type>
-
-    <channel-type id="yield_year_previous">
-        <item-type>Number:Energy</item-type>
-        <label>Yield Last Year</label>
-        <description>This channel provides last years total yield in KWh.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.3f KWh"/>
     </channel-type>
     
     <channel-type id="grid_power">
         <item-type>Number:Power</item-type>
         <label>Grid Power</label>
-        <description>This channel provides the Grid Power.</description>
+        <description>This channel provides the Grid Power. Disclaimer: Untested, always zero for the developer.</description>
+        <category>Energy</category>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="grid_consumed_power">
         <item-type>Number:Power</item-type>
         <label>Grid Consumed Power</label>
-        <description>This channel provides the Grid Consumed Power.</description>
+        <description>This channel provides the Grid Consumed Power. Disclaimer: Untested, always zero for the developer. The intention seems to be to log the imported energy from the grid (despite 'power' in the name and 'W' as unit).</description>
+        <category>Energy</category>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="grid_injected_power">
         <item-type>Number:Power</item-type>
         <label>Grid Injected Power</label>
-        <description>This channel provides the Grid Injected Power.</description>
+        <description>This channel provides the Grid Injected Power. Disclaimer: Untested, always zero for the developer. The intention seems to be to log the exported energy into the grid (despite 'power' in the name and 'W' as unit).</description>
+        <category>Energy</category>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="own_consumed_power">
         <item-type>Number:Power</item-type>
         <label>Own Consumed Power</label>
-        <description>This channel provides the Own Consumed Power.</description>
+        <description>This channel provides the Own Consumed Power. Disclaimer: Untested, always zero for the developer. The intention seems to be to log the produced energy that was directly used (despite 'power' in the name and 'W' as unit).</description>
+        <category>Energy</category>
+        <state readOnly="true"/>
     </channel-type>
     
     <channel-type id="derating">
@@ -191,6 +189,8 @@
         <label>Derating</label>
         <description>This channel provides the current derating as a percentage, where 0 means fully derated and 100 means not
             derated.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.1f %%"/>
     </channel-type>
     
 

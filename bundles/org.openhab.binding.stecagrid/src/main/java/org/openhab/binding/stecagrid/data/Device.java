@@ -75,8 +75,6 @@ public class Device {
     private ArrayList<Measurement> measurements = new ArrayList<Measurement>();
 
     public Device() {
-        measurements.add(new Measurement());
-        measurements.add(new Measurement());
     }
 
     /**
@@ -257,6 +255,22 @@ public class Device {
 
     public double getLinkVoltage() {
         return getNamedDouble("Link_Voltage");
+    }
+
+    public double getGridPower() {
+        return getNamedDouble("GridPower");
+    }
+
+    public double getGridConsumedPower() {
+        return getNamedDouble("GridConsumedPower");
+    }
+
+    public double getGridInjectedPower() {
+        return getNamedDouble("GridInjectedPower");
+    }
+
+    public double getOwnConsumedPower() {
+        return getNamedDouble("OwnConsumedPower");
     }
 
     private double getNamedDouble(String name) {

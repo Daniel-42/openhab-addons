@@ -40,6 +40,14 @@ public class StecaGridBindingConstants {
     public static final String CHANNEL_LINK_VOLTAGE = "inverter#link_voltage";
     public static final String CHANNEL_DERATING = "inverter#derating";
 
+    public static final String CHANNEL_GRID_POWER = "grid#grid_power";
+    public static final String CHANNEL_GRID_CONSUMED_POWER = "grid#grid_consumed_power";
+    public static final String CHANNEL_GRID_INJECTED_POWER = "grid#grid_injected_power";
+    public static final String CHANNEL_OWN_CONSUMED_POWER = "grid#own_consumed_power";
+
+    public static final String CHANNEL_YIELD_DAY_CURRENT = "yield#yield_day_current";
+    public static final String CHANNEL_YIELD_DAY_PREVIOUS = "yield#yield_day_previous";
+
     // List of all properties
     public static final String PROPERTY_DEVICE_NAME = "deviceName";
     public static final String PROPERTY_DEVICE_TYPE = "deviceType";
