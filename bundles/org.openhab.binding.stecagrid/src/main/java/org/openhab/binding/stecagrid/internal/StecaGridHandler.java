@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.stecagrid.data.DailyYields;
 import org.openhab.binding.stecagrid.data.Device;
 import org.openhab.binding.stecagrid.data.Measurements;
 import org.openhab.core.io.net.http.HttpUtil;
@@ -36,6 +37,7 @@ import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thoughtworks.xstream.InitializationException;
@@ -59,8 +61,7 @@ public class StecaGridHandler extends BaseThingHandler {
     private @Nullable ScheduledFuture<?> pollingJob;
     private int currentRefreshDelay = 0;
 
-    private final GsonBuilder builder = new GsonBuilder();
-    private final Gson gson = builder.create();
+    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).create();
 
     private final Lock configurationLock = new ReentrantLock(); // to protected fields accessed in init/dispose AND the
                                                                 // poller
@@ -232,22 +233,22 @@ public class StecaGridHandler extends BaseThingHandler {
         // start with creating a local copy of the required configuration for this run
         String measurementsURL = "";
         String yieldMonthURL = "";
-        String yieldYearURL = "";
+        // String yieldYearURL = "";
 
         try {
             configurationLock.lock();
             measurementsURL = String.format("http://%s/measurements.xml", stecaHost);
             yieldMonthURL = String.format("http://%s/yields.json?month=1", stecaHost);
-            yieldYearURL = String.format("http://%s/yields.json?year=1", stecaHost);
+            // yieldYearURL = String.format("http://%s/yields.json?year=1", stecaHost);
         } finally {
             configurationLock.unlock();
         }
 
-        final String result;
+        String result;
 
         // first get the current measurements
         try {
-            result = HttpUtil.executeUrl("GET", measurementsURL, 500);
+            result = HttpUtil.executeUrl("GET", measurementsURL, 1000);
 
             if (result.trim().isEmpty()) {
                 logger.warn("Empty Measurement data at {} ", measurementsURL);
@@ -279,13 +280,6 @@ public class StecaGridHandler extends BaseThingHandler {
                         updateProperty(StecaGridBindingConstants.PROPERTY_DEVICE_TYPE, deviceType);
                     }
 
-                    logger.warn("ACV {}", d.getAcVoltage());
-                    logger.warn("ACC {}", d.getAcCurrent());
-                    logger.warn("ACP {}", d.getAcPower());
-                    logger.warn("ACF {}", d.getAcPowerFast());
-                    logger.warn("LV {}", d.getLinkVoltage());
-                    logger.warn("ACF {}", d.getAcFrequency());
-
                     // There's no sense, it's all Volta, Ampère and Ohm
                     // Earth to Moon, it's the same as London-Rome
 
@@ -315,6 +309,15 @@ public class StecaGridHandler extends BaseThingHandler {
 
                     updateState(StecaGridBindingConstants.CHANNEL_DERATING,
                             new QuantityType<>(d.getDerating(), Units.ONE));
+
+                    updateState(StecaGridBindingConstants.CHANNEL_GRID_POWER,
+                            new QuantityType<>(d.getGridPower(), Units.WATT));
+                    updateState(StecaGridBindingConstants.CHANNEL_GRID_CONSUMED_POWER,
+                            new QuantityType<>(d.getGridConsumedPower(), Units.WATT));
+                    updateState(StecaGridBindingConstants.CHANNEL_GRID_INJECTED_POWER,
+                            new QuantityType<>(d.getGridInjectedPower(), Units.WATT));
+                    updateState(StecaGridBindingConstants.CHANNEL_OWN_CONSUMED_POWER,
+                            new QuantityType<>(d.getOwnConsumedPower(), Units.WATT));
                 }
             } catch (Exception ex) {
                 logger.warn("woopy", ex);
@@ -322,55 +325,31 @@ public class StecaGridHandler extends BaseThingHandler {
         } catch (IOException e) {
             logger.warn("Measurement not found at {}", measurementsURL);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Unable to query inverter");
-            return;
         }
 
-        /*
-         * P1Payload payload = gson.fromJson(result, P1Payload.class);
-         * if (payload != null) {
-         * if (payload.getMeter_model() == "") {
-         * updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-         * "Results from API seem empty");
-         * return;
-         * }
-         *
-         * updateStatus(ThingStatus.ONLINE);
-         *
-         * if (meterModel != payload.getMeter_model()) {
-         * meterModel = payload.getMeter_model();
-         * updateProperty(HomeWizardBindingConstants.PROPERTY_METER_MODEL, meterModel);
-         * }
-         *
-         * if (meterVersion != payload.getSmr_version()) {
-         * meterVersion = payload.getSmr_version();
-         * updateProperty(HomeWizardBindingConstants.PROPERTY_METER_VERSION,
-         * String.format("%d", meterVersion));
-         * }
-         *
-         * updateState(HomeWizardBindingConstants.CHANNEL_POWER_IMPORT_T1,
-         * new QuantityType<>(payload.getTotal_power_import_t1_kwh(), Units.WATT));
-         * updateState(HomeWizardBindingConstants.CHANNEL_POWER_IMPORT_T2,
-         * new QuantityType<>(payload.getTotal_power_import_t2_kwh(), Units.WATT));
-         * updateState(HomeWizardBindingConstants.CHANNEL_POWER_EXPORT_T1,
-         * new QuantityType<>(payload.getTotal_power_export_t1_kwh(), Units.WATT));
-         * updateState(HomeWizardBindingConstants.CHANNEL_POWER_EXPORT_T2,
-         * new QuantityType<>(payload.getTotal_power_export_t2_kwh(), Units.WATT));
-         *
-         * updateState(HomeWizardBindingConstants.CHANNEL_ACTIVE_POWER,
-         * new QuantityType<>(payload.getActive_power_w(), Units.WATT));
-         * updateState(HomeWizardBindingConstants.CHANNEL_ACTIVE_POWER_L1,
-         * new QuantityType<>(payload.getActive_power_l1_w(), Units.WATT));
-         * updateState(HomeWizardBindingConstants.CHANNEL_ACTIVE_POWER_L2,
-         * new QuantityType<>(payload.getActive_power_l2_w(), Units.WATT));
-         * updateState(HomeWizardBindingConstants.CHANNEL_ACTIVE_POWER_L3,
-         * new QuantityType<>(payload.getActive_power_l3_w(), Units.WATT));
-         *
-         * updateState(HomeWizardBindingConstants.CHANNEL_TOTAL_GAS,
-         * new QuantityType<>(payload.getTotal_gas_m3(), Units.ONE)); // could convert, 1m^3 = 1000 liters
-         * updateState(HomeWizardBindingConstants.CHANNEL_GAS_TIMESTAMP,
-         * new QuantityType<>(payload.getGas_timestamp(), Units.SECOND));
-         * }
-         *
-         */
+        try {
+            result = HttpUtil.executeUrl("GET", yieldMonthURL, 2000);
+
+            if (result.trim().isEmpty()) {
+                logger.warn("Empty yield data at {} ", yieldMonthURL);
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                        "Inverter returned empty yields");
+                return;
+            }
+
+            updateStatus(ThingStatus.ONLINE);
+
+            DailyYields daily = gson.fromJson(result, DailyYields.class);
+            if (daily != null) {
+                updateState(StecaGridBindingConstants.CHANNEL_YIELD_DAY_CURRENT,
+                        new QuantityType<>(daily.getTodaysYieldKWh(), Units.KILOWATT_HOUR));
+                updateState(StecaGridBindingConstants.CHANNEL_YIELD_DAY_PREVIOUS,
+                        new QuantityType<>(daily.getYesterdaysYieldKWh(), Units.KILOWATT_HOUR));
+            }
+        } catch (IOException e) {
+            logger.warn("Monthly Yields not found at {}", yieldMonthURL);
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Unable to query inverter");
+            return;
+        }
     }
 }
