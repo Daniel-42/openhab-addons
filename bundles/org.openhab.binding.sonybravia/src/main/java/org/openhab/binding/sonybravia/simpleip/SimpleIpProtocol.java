@@ -10,19 +10,21 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.sonybravia.connection;
+package org.openhab.binding.sonybravia.simpleip;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Class to handle Sony Bravia Simple IP protocol.
  *
- * @author Daniël van Os - Initial contribution (based upon EiscpProtocol class by Pauli Anttila)
+ * @author Daniël van Os - Initial contribution (loosely based upon EiscpProtocol class by Pauli Anttila)
  */
+@NonNullByDefault
 public class SimpleIpProtocol {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleIpProtocol.class);
@@ -34,11 +36,12 @@ public class SimpleIpProtocol {
      * @return String holding the full Simple IP message packet
      */
     public static String createPdu(SimpleIpMessage msg) {
-        String data = msg.getMessageType().getTypeChar() + msg.getCommand().getCommand() + msg.getValue();
         StringBuilder sb = new StringBuilder();
 
         sb.append("*S");
-        sb.append(data);
+        sb.append(msg.getMessageType().getTypeString());
+        sb.append(msg.getCommand().getCommandString());
+        sb.append(msg.getParameter().getParameterString());
         sb.append((char) 0x0a);
 
         if (sb.length() != 24) {
@@ -59,29 +62,42 @@ public class SimpleIpProtocol {
      */
     public static SimpleIpMessage getNextMessage(DataInputStream stream)
             throws IOException, InterruptedException, SimpleIpException {
+
+        boolean previousMessageOk = true; // used to prevent log flooding
+
         while (true) {
             // 1st 3 chars are the lead in
             byte firstByte = stream.readByte();
             if (firstByte != '*') {
-                logger.warn("Simple IP Message did not start with *, ignoring");
+                if (previousMessageOk) {
+                    logger.warn("Simple IP Message did not start with *, ignoring.");
+                    previousMessageOk = false;
+                }
                 continue;
             }
 
             if (stream.readByte() != 'S') {
-                logger.warn("Simple IP Message 2 is not S, ignoring");
+                if (previousMessageOk) {
+                    logger.warn("Simple IP Message did not start with *S, ignoring.");
+                    previousMessageOk = false;
+                }
                 continue;
             }
+
+            // If we get this far, I want to see the next failure in the logging
+            previousMessageOk = true;
 
             SimpleIpMessageType messageType = SimpleIpMessageType.getIpMessageType(stream.readNBytes(1));
-            SimpleIpCommand command = SimpleIpCommand.getIpCommand(messageType, stream.readNBytes(4));
-            String value = new String(stream.readNBytes(16));
+            SimpleIpCommand command = SimpleIpCommand.getIpCommand(stream.readNBytes(4));
+            SimpleIpParameter parameter = new SimpleIpParameter(new String(stream.readNBytes(16)));
 
             if (stream.readByte() != 0x0a) {
-                logger.warn("Simple IP Message no \\n");
+                logger.warn("Simple IP Message did not end with 0x0a, ignoring.");
                 continue;
             }
 
-            return new SimpleIpMessage.MessageBuilder().messageType(messageType).command(command).value(value).build();
+            return new SimpleIpMessage.MessageBuilder().messageType(messageType).command(command).parameter(parameter)
+                    .build();
         }
     }
 }

@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.sonybravia.connection;
+package org.openhab.binding.sonybravia.simpleip;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
@@ -23,18 +23,16 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 public interface SimpleIpEventListener {
 
     /**
-     * Procedure for receive status update from Onkyo AV receiver.
+     * Callback for receiving a status update from a Sony Bravia TV.
      *
-     * @param data
-     *            Received data.
+     * @param message Received data.
      */
-    void statusUpdateReceived(String ip, SimpleIpMessage data);
+    void statusUpdateReceived(String ip, SimpleIpMessage message);
 
     /**
-     * Procedure for connection error events from Onkyo AV receiver.
+     * Callback for receiving error events from a Sony Bravia TV.
      *
-     * @param errorMsg
-     *            Reason for error.
+     * @param errorMessage Details of the error
      */
-    void connectionError(String ip, String errorMsg);
+    void connectionError(String ip, String errorMessage);
 }

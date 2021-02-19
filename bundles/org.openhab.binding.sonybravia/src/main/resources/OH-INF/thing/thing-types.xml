@@ -13,6 +13,7 @@
 			<channel id="power" typeId="power-channel"/>
             <channel id="volume" typeId="volume-channel"/>
             <channel id="mute" typeId="mute-channel"/>
+            <channel id="channel" typeId="channel-channel"/>
 		</channels>
 
 		<config-description>
@@ -43,6 +44,13 @@
         <item-type>Switch</item-type>
         <label>Mute Audio</label>
         <description>Switch for the muting the audio of TV.</description>
+    </channel-type>
+
+    <!-- Channel Channel Type -->
+    <channel-type id="channel-channel">
+        <item-type>Number</item-type>
+        <label>Channel</label>
+        <description>The TV channel.</description>
     </channel-type>
 
 </thing:thing-descriptions>

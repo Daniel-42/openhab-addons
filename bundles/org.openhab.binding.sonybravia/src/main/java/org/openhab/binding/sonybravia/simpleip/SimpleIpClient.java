@@ -10,7 +10,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.sonybravia.connection;
+package org.openhab.binding.sonybravia.simpleip;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -106,15 +106,31 @@ public class SimpleIpClient {
     }
 
     /**
-     * Sends a command to Bravia TV.
+     * Sends a request message to a Bravia TV.
      *
-     * @param cmd eISCP command to send
+     * @param cmd Simple Ip command to send
      */
-    public void send(SimpleIpCommand cmd, Object... args) {
+    public void enquire(SimpleIpCommand cmd) {
         try {
-            sendCommand(new SimpleIpMessage.MessageBuilder().command(cmd).value(cmd.getValue(), args).build());
+            sendCommand(
+                    new SimpleIpMessage.MessageBuilder().messageType(SimpleIpMessageType.ENQUIRY).command(cmd).build());
         } catch (Exception e) {
-            logger.warn("Could not send command to device on {}:{}: ", ip, port, e);
+            logger.warn("Could not send request to device on {}:{}: ", ip, port, e);
+        }
+    }
+
+    /**
+     * Sends a control message to a Bravia TV.
+     *
+     * @param cmd Simple Ip command to send
+     * @param parameters Parameters to send with the command
+     */
+    public void control(SimpleIpCommand cmd, SimpleIpParameter parameters) {
+        try {
+            sendCommand(new SimpleIpMessage.MessageBuilder().messageType(SimpleIpMessageType.CONTROL).command(cmd)
+                    .parameter(parameters).build());
+        } catch (Exception e) {
+            logger.warn("Could not send request to device on {}:{}: ", ip, port, e);
         }
     }
 
@@ -232,8 +248,10 @@ public class SimpleIpClient {
             throws NumberFormatException, IOException, InterruptedException, SimpleIpException {
         if (connected) {
             while (true) {
-                SimpleIpMessage message = SimpleIpProtocol.getNextMessage(inStream);
-                sendMessageEvent(message);
+                if (inStream != null) { // yikes -> busy wait possible if null
+                    SimpleIpMessage message = SimpleIpProtocol.getNextMessage(inStream);
+                    sendMessageEvent(message);
+                }
             }
         } else {
             throw new IOException("Not Connected to Receiver");
@@ -286,8 +304,7 @@ public class SimpleIpClient {
                     try {
                         connected = false;
                         connectSocket();
-                        sendCommand(new SimpleIpMessage.MessageBuilder().command(SimpleIpCommand.POWER_STATUS_GET)
-                                .value(SimpleIpCommand.POWER_STATUS_GET.getValue()).build());
+                        enquire(SimpleIpCommand.POWER_STATUS);
                     } catch (Exception ex) {
                         sendConnectionErrorEvent(ex.getMessage());
                     }
@@ -331,8 +348,7 @@ public class SimpleIpClient {
         class Task extends TimerTask {
             @Override
             public void run() {
-                sendCommand(new SimpleIpMessage.MessageBuilder().command(SimpleIpCommand.POWER_STATUS_GET)
-                        .value(SimpleIpCommand.POWER_STATUS_GET.getValue()).build());
+                enquire(SimpleIpCommand.POWER_STATUS);
             }
         }
     }

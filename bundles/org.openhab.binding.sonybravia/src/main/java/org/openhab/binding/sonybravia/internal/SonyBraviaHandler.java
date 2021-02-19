@@ -16,11 +16,12 @@ import static org.openhab.binding.sonybravia.internal.SonyBraviaBindingConstants
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.sonybravia.connection.SimpleIpClient;
-import org.openhab.binding.sonybravia.connection.SimpleIpCommand;
-import org.openhab.binding.sonybravia.connection.SimpleIpEventListener;
-import org.openhab.binding.sonybravia.connection.SimpleIpMessage;
-import org.openhab.binding.sonybravia.connection.SimpleIpMessageType;
+import org.openhab.binding.sonybravia.simpleip.SimpleIpClient;
+import org.openhab.binding.sonybravia.simpleip.SimpleIpCommand;
+import org.openhab.binding.sonybravia.simpleip.SimpleIpEventListener;
+import org.openhab.binding.sonybravia.simpleip.SimpleIpMessage;
+import org.openhab.binding.sonybravia.simpleip.SimpleIpMessageType;
+import org.openhab.binding.sonybravia.simpleip.SimpleIpParameter;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.thing.ChannelUID;
@@ -79,7 +80,7 @@ public class SonyBraviaHandler extends BaseThingHandler implements SimpleIpEvent
         if (connection.isConnected()) {
             updateStatus(ThingStatus.ONLINE);
 
-            connection.send(SimpleIpCommand.AUDIO_VOLUME_GET, SimpleIpCommand.AUDIO_VOLUME_GET.getValue());
+            connection.enquire(SimpleIpCommand.AUDIO_VOLUME);
         }
     }
 
@@ -113,46 +114,42 @@ public class SonyBraviaHandler extends BaseThingHandler implements SimpleIpEvent
         }
     }
 
-    private void handleAnswer(SimpleIpMessage data) {
-        SimpleIpCommand command = data.getCommand();
+    private void handleAnswer(SimpleIpMessage message) {
+        SimpleIpCommand command = message.getCommand();
+        SimpleIpParameter parameter = message.getParameter();
         switch (command) {
-            case POWER_STATUS_ANSWER:
-                if (data.getValue().equals(SimpleIpCommand.Constants.ERROR_PARAMETER)) {
+            case POWER_STATUS:
+                if (parameter.isError()) {
                     logger.warn("Answer: Power Status = ERROR");
                 } else {
                     // tricky... answer 0 to set == success, answer 0 to get == off
-                    boolean isOn = Integer.parseInt(data.getValue()) == 1 ? true : false;
-                    logger.warn("Answer: Power Status = {}", isOn);
-                    updateState(SonyBraviaBindingConstants.CHANNEL_POWER, OnOffType.from(isOn));
+                    logger.warn("Answer: Power Status = {}", parameter.isOn());
+                    updateState(SonyBraviaBindingConstants.CHANNEL_POWER, OnOffType.from(parameter.isOn()));
                 }
                 break;
-            case AUDIO_VOLUME_ANSWER:
-                if (data.getValue().equals(SimpleIpCommand.Constants.ERROR_PARAMETER)) {
+            case AUDIO_VOLUME:
+                if (parameter.isError()) {
                     logger.warn("Answer: Audio Volume = ERROR");
                 } else {
-                    int volume = Integer.parseInt(data.getValue());
-                    logger.warn("Answer: Audio Volume = {}", volume);
-                    updateState(SonyBraviaBindingConstants.CHANNEL_VOLUME, new PercentType(volume));
+                    logger.warn("Answer: Audio Volume = {}", parameter.asVolume());
+                    updateState(SonyBraviaBindingConstants.CHANNEL_VOLUME, new PercentType(parameter.asVolume()));
                 }
                 break;
-            case AUDIO_MUTE_ANSWER:
-                if (data.getValue().equals(SimpleIpCommand.Constants.ERROR_PARAMETER)) {
+            case AUDIO_MUTE:
+                if (parameter.isError()) {
                     logger.warn("Answer: Audio Mute = ERROR");
                 } else {
-                    boolean isOn = Integer.parseInt(data.getValue()) == 1 ? true : false;
-                    logger.warn("Answer: Audio Mute = {}", isOn);
-                    updateState(SonyBraviaBindingConstants.CHANNEL_MUTE, OnOffType.from(isOn));
+                    logger.warn("Answer: Audio Mute = {}", parameter.isOn());
+                    updateState(SonyBraviaBindingConstants.CHANNEL_MUTE, OnOffType.from(parameter.isOn()));
                 }
                 break;
-            case INPUT_ANSWER:
-                if (data.getValue().equals(SimpleIpCommand.Constants.ERROR_PARAMETER)) {
+            case INPUT:
+                if (parameter.isError()) {
                     logger.warn("Answer: Input = ERROR");
-                } else if (data.getValue().equals(SimpleIpCommand.Constants.NOT_FOUND)) {
+                } else if (parameter.isNotFound()) {
                     logger.warn("Answer: Input = NOT FOUND");
                 } else {
-                    int input = Integer.parseInt(data.getValue().substring(0, 8));
-                    int subInput = Integer.parseInt(data.getValue().substring(8, 16));
-                    logger.warn("Answer: Input = {}/{}", input, subInput);
+                    logger.warn("Answer: Input = {}/{}", parameter.asInputType(), parameter.asInputSequence());
                 }
                 break;
             default:
@@ -160,22 +157,22 @@ public class SonyBraviaHandler extends BaseThingHandler implements SimpleIpEvent
         }
     }
 
-    private void handleNotification(SimpleIpMessage data) {
-        SimpleIpCommand command = data.getCommand();
+    private void handleNotification(SimpleIpMessage message) {
+        SimpleIpCommand command = message.getCommand();
+        SimpleIpParameter parameter = message.getParameter();
+
         switch (command) {
-            case FIRE_POWER_CHANGE:
-                logger.warn("Notification: Power Status = {}", Integer.parseInt(data.getValue()));
+            case POWER_STATUS:
+                logger.warn("Notification: Power Status = {}", parameter.isOn());
                 break;
-            case FIRE_VOLUME_CHANGE:
-                logger.warn("Notification: Audio Volume = {}", Integer.parseInt(data.getValue()));
+            case AUDIO_VOLUME:
+                logger.warn("Notification: Audio Volume = {}", parameter.asVolume());
                 break;
-            case FIRE_MUTE_CHANGE:
-                logger.warn("Notification: Audio Mute = {}", Integer.parseInt(data.getValue()));
+            case AUDIO_MUTE:
+                logger.warn("Notification: Audio Mute = {}", parameter.isOn());
                 break;
-            case FIRE_INPUT_CHANGE:
-                int input = Integer.parseInt(data.getValue().substring(0, 8));
-                int subInput = Integer.parseInt(data.getValue().substring(8, 16));
-                logger.warn("Notification: Input = {}/{}", input, subInput);
+            case INPUT:
+                logger.warn("Notification: Input = {}/{}", parameter.asInputType(), parameter.asInputSequence());
                 break;
             default:
                 break;
