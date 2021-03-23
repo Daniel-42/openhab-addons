@@ -254,7 +254,7 @@ public class Device {
     }
 
     public double getLinkVoltage() {
-        return getNamedDouble("Link_Voltage");
+        return getNamedDouble("LINK_Voltage");
     }
 
     public double getGridPower() {

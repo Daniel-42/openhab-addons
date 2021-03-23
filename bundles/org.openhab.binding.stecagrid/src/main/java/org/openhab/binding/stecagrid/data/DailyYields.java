@@ -57,4 +57,19 @@ public class DailyYields {
         return getDateYield(timestamp, zdt.getDayOfMonth() - 1) / 1000.0;
     }
 
+    /**
+     * Sum the yields of the previous 30 days
+     *
+     * @return summed yield
+     */
+    public double getYieldLast30Days() {
+        ZonedDateTime zdt = ZonedDateTime.now();
+        double yield = 0;
+        for (int d = 0; d < 30; d++) {
+            zdt = zdt.minusDays(1);
+            String timestamp = String.format("%04d-%02d", zdt.getYear(), zdt.getMonthValue());
+            yield += getDateYield(timestamp, zdt.getDayOfMonth() - 1);
+        }
+        return yield / 1000.0;
+    }
 }
