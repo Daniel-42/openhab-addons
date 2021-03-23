@@ -28,11 +28,17 @@
 				<description>The IP or host name of the inverter.</description>
 				<context>network-address</context>
 			</parameter>
-			<parameter name="refreshDelay" type="integer" min="1">
-				<label>Refresh Interval</label>
-				<description>The refresh interval in seconds for polling the inverter.</description>
+			<parameter name="measurementInterval" type="integer" min="1">
+				<label>Measurement refresh Interval</label>
+				<description>Number of seconds between refreshing the measurement values.</description>
 				<default>30</default>
 			</parameter>
+
+            <parameter name="yieldInterval" type="integer" min="1">
+                <label>Yield refresh interval</label>
+                <description>Number of seconds between refreshing the daily yield values.</description>
+                <default>300</default>
+            </parameter>
 		</config-description>
 	</thing-type>
 
@@ -69,6 +75,7 @@
         <channels>
             <channel id="yield_day_current" typeId="yield_day_current"/>
             <channel id="yield_day_previous" typeId="yield_day_previous"/>
+            <channel id="yield_last_30_days" typeId="yield_last_30_days"/>
         </channels>
     </channel-group-type>
 
@@ -77,7 +84,7 @@
 		<label>AC Voltage</label>
 		<description>This channel provides the current AC Voltage in V.</description>
 		<category>Energy</category>
-        <state readOnly="true" pattern="%.1f V"/>
+        <state readOnly="true" pattern="%.0f V"/>
 	</channel-type>
 
     <channel-type id="ac_current">
@@ -93,7 +100,7 @@
         <label>AC Power</label>
         <description>This channel provides the current AC Power in W.</description>
         <category>Energy</category>
-        <state readOnly="true" pattern="%.1f W"/>
+        <state readOnly="true" pattern="%.0f W"/>
     </channel-type>
 
     <channel-type id="ac_power_fast">
@@ -101,7 +108,7 @@
         <label>AC Power Fast</label>
         <description>This channel provides the current AC Power Fast in W.</description>
         <category>Energy</category>
-        <state readOnly="true" pattern="%.1f W"/>
+        <state readOnly="true" pattern="%.0f W"/>
     </channel-type>
 
     <channel-type id="ac_frequency">
@@ -117,7 +124,7 @@
         <label>DC Voltage</label>
         <description>This channel provides the current DC Voltage in V.</description>
         <category>Energy</category>
-        <state readOnly="true" pattern="%.1f V"/>
+        <state readOnly="true" pattern="%.0f V"/>
     </channel-type>
 
     <channel-type id="dc_current">
@@ -133,7 +140,7 @@
         <label>Link Voltage</label>
         <description>This channel provides the current Link Voltage in V.</description>
         <category>Energy</category>
-        <state readOnly="true" pattern="%.1f V"/>
+        <state readOnly="true" pattern="%.0f V"/>
     </channel-type>
 
     <channel-type id="yield_day_current">
@@ -151,7 +158,15 @@
         <category>Energy</category>
         <state readOnly="true" pattern="%.3f KWh"/>
     </channel-type>
-    
+
+    <channel-type id="yield_last_30_days">
+        <item-type>Number:Energy</item-type>
+        <label>Yield Last 30 Days</label>
+        <description>This channel provides the yield over the last 30 days (excluding today).</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.3f KWh"/>
+    </channel-type>
+
     <channel-type id="grid_power">
         <item-type>Number:Power</item-type>
         <label>Grid Power</label>
@@ -190,7 +205,7 @@
         <description>This channel provides the current derating as a percentage, where 0 means fully derated and 100 means not
             derated.</description>
         <category>Energy</category>
-        <state readOnly="true" pattern="%.1f %%"/>
+        <state readOnly="true" pattern="%.0f %%"/>
     </channel-type>
     
 

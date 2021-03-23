@@ -12,25 +12,29 @@
  */
 package org.openhab.binding.stecagrid.internal;
 
+import org.eclipse.jdt.annotation.NonNullByDefault;
+
 /**
  * The {@link StecaGridConfiguration} class contains fields mapping thing configuration parameters.
  *
  * @author Daniël van Os - Initial contribution
  */
+@NonNullByDefault
 public class StecaGridConfiguration {
-
-    public StecaGridConfiguration() {
-        refreshDelay = 5;
-        ipAddress = "";
-    }
 
     /**
      * IP Address or host for the P1 Meter
      */
-    public String ipAddress;
+    public String ipAddress = "";
 
     /**
-     * Refresh delay in seconds
+     * Measurement refresh interval in seconds
      */
-    public Integer refreshDelay;
+    public Integer measurementInterval = 5;
+
+    /**
+     * Yield refresh interval in seconds
+     */
+    public Integer yieldInterval = 300;
+
 }
