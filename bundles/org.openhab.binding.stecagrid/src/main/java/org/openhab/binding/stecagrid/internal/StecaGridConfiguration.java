@@ -36,5 +36,4 @@ public class StecaGridConfiguration {
      * Yield refresh interval in seconds
      */
     public Integer yieldInterval = 300;
-
 }

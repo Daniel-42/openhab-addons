@@ -38,5 +38,4 @@ public class Data {
     public String toString() {
         return String.format("timestamp: %s dataEntries: %d", timestamp, data.length);
     }
-
 }

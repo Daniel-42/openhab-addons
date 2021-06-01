@@ -19,6 +19,9 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
+/**
+ * @author Daniël van Os - Initial contribution
+ */
 @NonNullByDefault
 public class Device {
 
@@ -281,5 +284,4 @@ public class Device {
         }
         return 0.0;
     }
-
 }
