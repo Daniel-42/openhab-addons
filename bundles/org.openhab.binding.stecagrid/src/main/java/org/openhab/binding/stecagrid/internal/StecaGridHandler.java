@@ -96,8 +96,9 @@ public class StecaGridHandler extends BaseThingHandler {
             return;
         }
 
-        if (xstream != null) {
-            configureXstream(xstream);
+        var xstr = xstream;
+        if (xstr != null) {
+            configureXstream(xstr);
         } else {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.HANDLER_INITIALIZING_ERROR,
                     "Did not get an XML parser");
@@ -182,7 +183,7 @@ public class StecaGridHandler extends BaseThingHandler {
             try {
                 measurements = (Measurements) xstr.fromXML(result);
             } catch (Exception ex) {
-                logger.warn("xstream failed on measurements.xml: {}", ex);
+                logger.warn("xstream failed on measurements.xml:", ex);
                 return;
             }
 
@@ -250,7 +251,7 @@ public class StecaGridHandler extends BaseThingHandler {
             DailyYields daily = gson.fromJson(result, DailyYields.class);
             if (daily != null) {
                 updateKWhs(StecaGridBindingConstants.CHANNEL_YIELD_DAY_CURRENT, daily.getTodaysYieldKWh());
-                updateKWhs(StecaGridBindingConstants.CHANNEL_YIELD_DAY_PREVIOUS,daily.getYesterdaysYieldKWh());
+                updateKWhs(StecaGridBindingConstants.CHANNEL_YIELD_DAY_PREVIOUS, daily.getYesterdaysYieldKWh());
                 updateKWhs(StecaGridBindingConstants.CHANNEL_YIELD_LAST_30_DAYS, daily.getYieldLast30Days());
             }
         } catch (JsonSyntaxException jse) {

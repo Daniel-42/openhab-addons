@@ -17,6 +17,9 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
+/**
+ * @author Daniël van Os - Initial contribution
+ */
 @NonNullByDefault
 @XStreamAlias("Measurement")
 public class Measurement {

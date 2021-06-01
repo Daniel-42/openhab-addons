@@ -16,6 +16,9 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+/**
+ * @author Daniël van Os - Initial contribution
+ */
 @NonNullByDefault
 @XStreamAlias("root")
 public class Measurements {
