@@ -233,7 +233,7 @@ public class Device {
     }
 
     public double getAcPower() {
-        return getNamedDouble("AC_Power_fast");
+        return getNamedDouble("AC_Power");
     }
 
     public double getAcPowerFast() {
