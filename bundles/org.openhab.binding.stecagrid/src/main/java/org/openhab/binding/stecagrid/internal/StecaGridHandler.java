@@ -21,6 +21,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.stecagrid.data.DailyYields;
 import org.openhab.binding.stecagrid.data.Device;
 import org.openhab.binding.stecagrid.data.Measurements;
+import org.openhab.binding.stecagrid.data.MonthlyYields;
 import org.openhab.core.io.net.http.HttpUtil;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.unit.Units;
@@ -168,7 +169,7 @@ public class StecaGridHandler extends BaseThingHandler {
         }
 
         try {
-            String result = HttpUtil.executeUrl("GET", measurementsURL, 1000);
+            String result = HttpUtil.executeUrl("GET", measurementsURL, 5000);
 
             if (result.trim().isEmpty()) {
                 logger.warn("Empty Measurement data at {} ", measurementsURL);
@@ -218,7 +219,7 @@ public class StecaGridHandler extends BaseThingHandler {
             updateWatts(StecaGridBindingConstants.CHANNEL_GRID_INJECTED_POWER, d.getGridInjectedPower());
             updateWatts(StecaGridBindingConstants.CHANNEL_OWN_CONSUMED_POWER, d.getOwnConsumedPower());
         } catch (IOException e) {
-            logger.warn("Measurement not found at {}", measurementsURL);
+            logger.warn("Measurement not found at {} - {}", measurementsURL, e);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Unable to query inverter");
         }
     }
@@ -228,10 +229,11 @@ public class StecaGridHandler extends BaseThingHandler {
      */
     private void pollYields() {
         final String yieldMonthURL = String.format("http://%s/yields.json?month=1", stecaHost);
+
         String result;
 
         try {
-            result = HttpUtil.executeUrl("GET", yieldMonthURL, 2000);
+            result = HttpUtil.executeUrl("GET", yieldMonthURL, 5000);
 
             if (result.trim().isEmpty()) {
                 logger.warn("Empty yield data at {} ", yieldMonthURL);
@@ -240,7 +242,7 @@ public class StecaGridHandler extends BaseThingHandler {
                 return;
             }
         } catch (IOException e) {
-            logger.warn("Monthly Yields not found at {}", yieldMonthURL);
+            logger.warn("Monthly Yields not found at {} - {}", yieldMonthURL, e);
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Unable to query inverter");
             return;
         }
@@ -255,7 +257,33 @@ public class StecaGridHandler extends BaseThingHandler {
                 updateKWhs(StecaGridBindingConstants.CHANNEL_YIELD_LAST_30_DAYS, daily.getYieldLast30Days());
             }
         } catch (JsonSyntaxException jse) {
-            logger.warn("Unable to parse Yield Json");
+            logger.warn("Unable to parse Monthly Yield Json");
+        }
+
+        final String yieldYearURL = String.format("http://%s/yields.json?year=1", stecaHost);
+
+        try {
+            result = HttpUtil.executeUrl("GET", yieldYearURL, 5000);
+
+            if (result.trim().isEmpty()) {
+                logger.warn("Empty yield data at {} ", yieldYearURL);
+                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                        "Inverter returned empty yields");
+                return;
+            }
+        } catch (IOException e) {
+            logger.warn("Yearly Yields not found at {} - {}", yieldYearURL, e);
+            updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Unable to query inverter");
+            return;
+        }
+
+        try {
+            MonthlyYields monthly = gson.fromJson(result, MonthlyYields.class);
+            if (monthly != null) {
+                updateKWhs(StecaGridBindingConstants.CHANNEL_YIELD_YEAR_CURRENT, monthly.getYieldCurrentYearKWh());
+            }
+        } catch (JsonSyntaxException jse) {
+            logger.warn("Unable to parse Yearly Yield Json");
         }
     }
 

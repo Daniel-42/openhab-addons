@@ -49,6 +49,8 @@ public class StecaGridBindingConstants {
     public static final String CHANNEL_YIELD_DAY_PREVIOUS = "yield#yield_day_previous";
     public static final String CHANNEL_YIELD_LAST_30_DAYS = "yield#yield_last_30_days";
 
+    public static final String CHANNEL_YIELD_YEAR_CURRENT = "yield#yield_year_current";
+
     // List of all properties
     public static final String PROPERTY_DEVICE_NAME = "deviceName";
     public static final String PROPERTY_DEVICE_TYPE = "deviceType";

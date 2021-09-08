@@ -27,7 +27,7 @@ public class DailyYields {
         return monthCurves;
     }
 
-    private int getDateYield(String timestamp, int index) {
+    private int getDateYield(String timestamp, int dayIndex) {
         Dataset produced = monthCurves.getDatasetByType("Produced");
         if (produced == null) {
             return 0;
@@ -38,8 +38,8 @@ public class DailyYields {
             return 0;
         }
 
-        if (index < producedMonth.getValueCount()) {
-            return producedMonth.getValue(index);
+        if (dayIndex < producedMonth.getValueCount()) {
+            return producedMonth.getValue(dayIndex);
         } else {
             return 0;
         }

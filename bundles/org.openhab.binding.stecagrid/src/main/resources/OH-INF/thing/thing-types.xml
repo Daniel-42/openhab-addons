@@ -76,6 +76,7 @@
 			<channel id="yield_day_current" typeId="yield_day_current"/>
 			<channel id="yield_day_previous" typeId="yield_day_previous"/>
 			<channel id="yield_last_30_days" typeId="yield_last_30_days"/>
+            <channel id="yield_year_current" typeId="yield_year_current"/>
 		</channels>
 	</channel-group-type>
 
@@ -166,6 +167,14 @@
 		<category>Energy</category>
 		<state readOnly="true" pattern="%.3f KWh"/>
 	</channel-type>
+
+    <channel-type id="yield_year_current">
+        <item-type>Number:Energy</item-type>
+        <label>Yield Today</label>
+        <description>This channel provides the current yield for the current year in KWh.</description>
+        <category>Energy</category>
+        <state readOnly="true" pattern="%.0f KWh"/>
+    </channel-type>
 
 	<channel-type id="grid_power">
 		<item-type>Number:Power</item-type>
