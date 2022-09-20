@@ -23,7 +23,7 @@ import com.google.gson.annotations.SerializedName;
  *
  */
 @NonNullByDefault
-public class P1Payload {
+public class DataPayload {
     private int smrVersion = 0;
     private String meterModel = "";
     private String wifiSsid = "";
@@ -44,6 +44,11 @@ public class P1Payload {
     private double activePowerL3W;
     private double totalGasM3;
     private long gasTimestamp = 0;
+
+    @SerializedName("total_liter_m3")
+    private double totalWaterM3;
+    @SerializedName("active_liter_lpm")
+    private double currentWaterLPM;
 
     /**
      * Getter for the smart meter version
@@ -295,6 +300,44 @@ public class P1Payload {
      */
     public void setGasTimestamp(long gasTimestamp) {
         this.gasTimestamp = gasTimestamp;
+    }
+
+    /**
+     * Getter for the total imported water volume
+     *
+     * @return total imported water volume
+     */
+    public double getTotalWaterM3() {
+        return totalWaterM3;
+    }
+
+    /**
+     * Setter for the total imported water volume
+     *
+     * @param totalWaterM3 total imported water volume
+     */
+    public void setTotalWaterM3(double totalWaterM3) {
+        this.totalWaterM3 = totalWaterM3;
+    }
+
+    /**
+     * Getter for the current water flow
+     *
+     * todo: provided is L/min, VolumetricFlowRate = m^3/s
+     *
+     * @return current water flow
+     */
+    public double getCurrentWaterLPM() {
+        return currentWaterLPM;
+    }
+
+    /**
+     * Setter for the current water flow
+     *
+     * @param currentWaterLPM current water flow
+     */
+    public void setCurrentWaterLPM(double currentWaterLPM) {
+        this.currentWaterLPM = currentWaterLPM;
     }
 
     @Override
