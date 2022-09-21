@@ -12,12 +12,7 @@
  */
 package org.openhab.binding.homewizard.internal;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.core.io.net.http.HttpUtil;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.QuantityType;
@@ -25,6 +20,7 @@ import org.openhab.core.library.unit.Units;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.RefreshType;
 
 /**
  * The {@link HomeWizardEnergySocketHandler} is responsible for handling commands, which are
@@ -33,7 +29,7 @@ import org.openhab.core.types.Command;
  * @author Daniël van Os - Initial contribution
  */
 @NonNullByDefault
-public class HomeWizardEnergySocketHandler extends HomeWizardDeviceHandler {
+public class HomeWizardEnergySocketHandler extends HomeWizardStatefulDeviceHandler {
 
     /**
      * Constructor
@@ -41,39 +37,53 @@ public class HomeWizardEnergySocketHandler extends HomeWizardDeviceHandler {
      * @param thing The thing to handle
      */
     public HomeWizardEnergySocketHandler(Thing thing) {
-        super(thing, true);
+        super(thing);
+    }
+
+    private int brightnessToPercentage(int brightness) {
+        return (int) (100.0 * brightness / 255.0 + 0.5);
+    }
+
+    private int percentageToBrightness(String percentage) {
+        return (int) (Double.valueOf(percentage) * 255.0 / 100.0 + 0.5);
     }
 
     /**
-     * Not listening to any commands yet.
+     * Handle incoming commands.
+     *
+     * Power on/off, Power lock/unlock and Ring brightness are supported.
      */
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        switch (channelUID.getIdWithoutGroup()) {
+        if (command instanceof RefreshType) {
+            // For now I prefer not updating above firing a full update request per channel
+            return;
+        }
+
+        StatePayload result = null;
+        switch (channelUID.getId()) {
             case HomeWizardBindingConstants.CHANNEL_RING_BRIGHTNESS: {
-                int b = (Integer.valueOf(command.toFullString()) * 255) / 100;
-                InputStream is = new ByteArrayInputStream(String.format("{\"brightness\": %d}", b).getBytes());
-                try {
-                    HttpUtil.executeUrl("PUT", stateURL, is, "application/json", 30000);
-                } catch (IOException e) {
+                result = sendStateCommand(
+                        String.format("{\"brightness\": %d}", percentageToBrightness(command.toFullString())));
+                if (result != null) {
+                    updateState(HomeWizardBindingConstants.CHANNEL_RING_BRIGHTNESS,
+                            new PercentType(brightnessToPercentage(result.getBrightness())));
                 }
                 break;
             }
             case HomeWizardBindingConstants.CHANNEL_POWER_SWITCH: {
                 boolean onOff = command.equals(OnOffType.ON);
-                InputStream is = new ByteArrayInputStream(String.format("{\"power_on\": %b}", onOff).getBytes());
-                try {
-                    HttpUtil.executeUrl("PUT", stateURL, is, "application/json", 30000);
-                } catch (IOException e) {
+                result = sendStateCommand(String.format("{\"power_on\": %b}", onOff));
+                if (result != null) {
+                    updateState(HomeWizardBindingConstants.CHANNEL_POWER_SWITCH, OnOffType.from(result.getPowerOn()));
                 }
                 break;
             }
             case HomeWizardBindingConstants.CHANNEL_POWER_LOCK: {
                 boolean onOff = command.equals(OnOffType.ON);
-                InputStream is = new ByteArrayInputStream(String.format("{\"switch_lock\": %b}", onOff).getBytes());
-                try {
-                    HttpUtil.executeUrl("PUT", stateURL, is, "application/json", 30000);
-                } catch (IOException e) {
+                result = sendStateCommand(String.format("{\"switch_lock\": %b}", onOff));
+                if (result != null) {
+                    updateState(HomeWizardBindingConstants.CHANNEL_POWER_LOCK, OnOffType.from(result.getSwitchLock()));
                 }
                 break;
             }
@@ -94,7 +104,6 @@ public class HomeWizardEnergySocketHandler extends HomeWizardDeviceHandler {
                 new QuantityType<>(payload.getTotalEnergyImportT1Kwh(), Units.KILOWATT_HOUR));
         updateState(HomeWizardBindingConstants.CHANNEL_ENERGY_EXPORT_T1,
                 new QuantityType<>(payload.getTotalEnergyExportT1Kwh(), Units.KILOWATT_HOUR));
-
         updateState(HomeWizardBindingConstants.CHANNEL_ACTIVE_POWER,
                 new QuantityType<>(payload.getActivePowerW(), Units.WATT));
     }
@@ -104,6 +113,6 @@ public class HomeWizardEnergySocketHandler extends HomeWizardDeviceHandler {
         updateState(HomeWizardBindingConstants.CHANNEL_POWER_SWITCH, OnOffType.from(payload.getPowerOn()));
         updateState(HomeWizardBindingConstants.CHANNEL_POWER_LOCK, OnOffType.from(payload.getSwitchLock()));
         updateState(HomeWizardBindingConstants.CHANNEL_RING_BRIGHTNESS,
-                new PercentType(100 * payload.getBrightness() / 255));
+                new PercentType(brightnessToPercentage(payload.getBrightness())));
     }
 }

@@ -17,7 +17,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Class that provides storage for the json object obtained from the P1 meter API
+ * Class that provides storage for the json objects obtained from HomeWizard devices.
  *
  * @author Daniël van Os - Initial contribution
  *
@@ -323,8 +323,6 @@ public class DataPayload {
     /**
      * Getter for the current water flow
      *
-     * todo: provided is L/min, VolumetricFlowRate = m^3/s
-     *
      * @return current water flow
      */
     public double getCurrentWaterLPM() {
@@ -342,10 +340,12 @@ public class DataPayload {
 
     @Override
     public String toString() {
-        return String.format("P1 [version: %d model: %s ssid: %s signal: %d"
-                + " imp1: %f imp2: %f exp1: %f exp2: %f active: %f active1: %f active2: %f active3: %f gas: %f timestamp: %.0f]",
-                smrVersion, meterModel, wifiSsid, wifiStrength, totalEnergyImportT1Kwh, totalEnergyImportT2Kwh,
-                totalEnergyExportT1Kwh, totalEnergyExportT2Kwh, activePowerW, activePowerL1W, activePowerL2W,
-                activePowerL3W, totalGasM3, gasTimestamp);
+        return String.format("Data [smrVersion: %d meterModel: %s wifiSsid: %s wifiStrength: %d"
+                + " totalEnergyImportT1Kwh: %f totalEnergyImportT2Kwh: %f totalEnergyExportT1Kwh: %f totalEnergyExportT2Kwh: %f"
+                + " activePowerW: %f activePowerL1W: %f activePowerL2W: %f activePowerL3W: %f totalGasM3: %f gasTimestamp: %.0f"
+                + " totalWaterM3: %f currentWaterLPM: %f]", smrVersion, meterModel, wifiSsid, wifiStrength,
+                totalEnergyImportT1Kwh, totalEnergyImportT2Kwh, totalEnergyExportT1Kwh, totalEnergyExportT2Kwh,
+                activePowerW, activePowerL1W, activePowerL2W, activePowerL3W, totalGasM3, gasTimestamp, totalWaterM3,
+                currentWaterLPM);
     }
 }

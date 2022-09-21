@@ -17,7 +17,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Class that provides storage for the json object obtained from the P1 meter API
+ * Class that provides storage for the json object obtained from the HomeWizard device State API
  *
  * @author Daniël van Os - Initial contribution
  *
@@ -25,9 +25,9 @@ import com.google.gson.annotations.SerializedName;
 @NonNullByDefault
 public class StatePayload {
     @SerializedName("power_on")
-    private boolean powerOn = false;
+    private boolean powerOn;
     @SerializedName("switch_lock")
-    private boolean switchLock = false;
+    private boolean switchLock;
     private int brightness = 0;
 
     /**

@@ -40,24 +40,21 @@ import com.google.gson.GsonBuilder;
 public abstract class HomeWizardDeviceHandler extends BaseThingHandler {
 
     protected final Logger logger = LoggerFactory.getLogger(HomeWizardDeviceHandler.class);
-    private final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+    protected final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .create();
 
     private HomeWizardConfiguration config = new HomeWizardConfiguration();
     private @Nullable ScheduledFuture<?> pollingJob;
 
-    private boolean hasState;
-    private String dataURL = "";
-    protected String stateURL = "";
+    protected String apiURL = "";
 
     /**
      * Constructor
      *
      * @param thing The thing to handle
      */
-    public HomeWizardDeviceHandler(Thing thing, boolean hasState) {
+    public HomeWizardDeviceHandler(Thing thing) {
         super(thing);
-        this.hasState = hasState;
     }
 
     /**
@@ -83,10 +80,7 @@ public abstract class HomeWizardDeviceHandler extends BaseThingHandler {
             return false;
         } else {
             updateStatus(ThingStatus.UNKNOWN);
-            dataURL = String.format("http://%s/api/v1/data", config.ipAddress.trim());
-            if (hasState) {
-                stateURL = String.format("http://%s/api/v1/state", config.ipAddress.trim());
-            }
+            apiURL = String.format("http://%s/api/v1/", config.ipAddress.trim());
             return true;
         }
     }
@@ -111,21 +105,13 @@ public abstract class HomeWizardDeviceHandler extends BaseThingHandler {
     abstract protected void handleDataPayload(DataPayload payload);
 
     /**
-     * Device specific handling of the returned state payload.
      *
-     * @param payload The data parsed from the state Json file
      */
-    abstract protected void handleStatePayload(StatePayload payload);
-
-    /**
-     * The actual polling loop
-     */
-    private void pollingCode() {
+    protected void pollData() {
         final String dataResult;
-        final String stateResult;
 
         try {
-            dataResult = HttpUtil.executeUrl("GET", dataURL, 30000);
+            dataResult = HttpUtil.executeUrl("GET", apiURL + "data", 30000);
         } catch (IOException e) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                     String.format("Unable to query device data: %s", e.getMessage()));
@@ -150,31 +136,13 @@ public abstract class HomeWizardDeviceHandler extends BaseThingHandler {
         }
 
         updateStatus(ThingStatus.ONLINE);
-
         handleDataPayload(dataPayload);
+    }
 
-        if (hasState) {
-            try {
-                stateResult = HttpUtil.executeUrl("GET", stateURL, 30000);
-            } catch (IOException e) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                        String.format("Unable to query device state: %s", e.getMessage()));
-                return;
-            }
-
-            if (stateResult.trim().isEmpty()) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, "Device returned empty state");
-                return;
-            }
-
-            StatePayload statePayload = gson.fromJson(stateResult, StatePayload.class);
-            if (statePayload == null) {
-                updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                        "Unable to parse state response from device");
-                return;
-            }
-
-            handleStatePayload(statePayload);
-        }
+    /**
+     * The actual polling loop
+     */
+    protected void pollingCode() {
+        pollData();
     }
 }

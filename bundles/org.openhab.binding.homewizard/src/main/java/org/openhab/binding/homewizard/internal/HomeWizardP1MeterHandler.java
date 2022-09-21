@@ -43,7 +43,7 @@ public class HomeWizardP1MeterHandler extends HomeWizardDeviceHandler {
      * @param thing The thing to handle
      */
     public HomeWizardP1MeterHandler(Thing thing) {
-        super(thing, false);
+        super(thing);
     }
 
     /**
@@ -123,10 +123,5 @@ public class HomeWizardP1MeterHandler extends HomeWizardDeviceHandler {
                 logger.warn("Unable to parse Gas timestamp: {}", payload.getGasTimestamp());
             }
         }
-    }
-
-    @Override
-    protected void handleStatePayload(StatePayload payload) {
-        // State not supported
     }
 }

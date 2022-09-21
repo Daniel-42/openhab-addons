@@ -35,7 +35,7 @@ public class HomeWizardWaterMeterHandler extends HomeWizardDeviceHandler {
      * @param thing The thing to handle
      */
     public HomeWizardWaterMeterHandler(Thing thing) {
-        super(thing, false);
+        super(thing);
     }
 
     /**
@@ -56,10 +56,5 @@ public class HomeWizardWaterMeterHandler extends HomeWizardDeviceHandler {
                 new QuantityType<>(payload.getCurrentWaterLPM(), Units.LITRE_PER_MINUTE));
         updateState(HomeWizardBindingConstants.CHANNEL_TOTAL_WATER,
                 new QuantityType<>(payload.getTotalWaterM3(), SIUnits.CUBIC_METRE));
-    }
-
-    @Override
-    protected void handleStatePayload(StatePayload payload) {
-        // State not supported
     }
 }
