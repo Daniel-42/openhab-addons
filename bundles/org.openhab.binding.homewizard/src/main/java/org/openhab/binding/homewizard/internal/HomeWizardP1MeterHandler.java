@@ -26,8 +26,7 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.types.Command;
 
 /**
- * The {@link HomeWizardP1MeterHandler} is responsible for handling commands, which are
- * sent to one of the channels.
+ * The {@link HomeWizardP1MeterHandler} implements functionality to handle a HomeWizard P1 Meter.
  *
  * @author Daniël van Os - Initial contribution
  */

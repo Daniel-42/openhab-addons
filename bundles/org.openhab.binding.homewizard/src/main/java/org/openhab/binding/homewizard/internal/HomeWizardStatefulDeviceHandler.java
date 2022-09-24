@@ -24,8 +24,9 @@ import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 
 /**
- * The {@link HomeWizardStatefulDeviceHandler} is responsible for handling commands, which are
- * sent to one of the channels.
+ * The {@link HomeWizardStatefulDeviceHandler} extends the base class
+ * to provide support for devices that also have a 'state' interface.
+ * This interface can be used to query and control the state of a device.
  *
  * @author Daniël van Os - Initial contribution
  */
@@ -78,8 +79,9 @@ public abstract class HomeWizardStatefulDeviceHandler extends HomeWizardDeviceHa
     }
 
     /**
-     * 
-     * @param command
+     * Sends a command to the state interface of the device.
+     *
+     * @param command The command to send.
      */
     protected @Nullable StatePayload sendStateCommand(String command) {
         StatePayload statePayload = null;
@@ -88,13 +90,13 @@ public abstract class HomeWizardStatefulDeviceHandler extends HomeWizardDeviceHa
             String updatedState = HttpUtil.executeUrl("PUT", apiURL + "state", is, "application/json", 30000);
             statePayload = gson.fromJson(updatedState, StatePayload.class);
         } catch (IOException e) {
-            // TODO handle
+            logger.warn("Failed to send command {} to {}", command, apiURL + "state");
         }
         return statePayload;
     }
 
     /**
-     * The actual polling loop
+     * This overrides the original polling loop by including a request for the current state..
      */
     @Override
     protected void pollingCode() {

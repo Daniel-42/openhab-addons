@@ -21,8 +21,7 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.types.Command;
 
 /**
- * The {@link HomeWizardWaterMeterHandler} is responsible for handling commands, which are
- * sent to one of the channels.
+ * The {@link HomeWizardWaterMeterHandler} implements functionality to handle a HomeWizard Watermeter.
  *
  * @author Daniël van Os - Initial contribution
  */

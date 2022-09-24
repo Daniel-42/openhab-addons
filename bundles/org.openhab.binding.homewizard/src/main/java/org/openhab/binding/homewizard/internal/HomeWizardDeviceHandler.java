@@ -31,9 +31,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /**
- * The {@link HomeWizardDeviceHandler} is responsible for handling commands, which are
- * sent to one of the channels.
- *
+ * The {@link HomeWizardDeviceHandler} is a base class for all
+ * HomeWizard devices. It provides configuration and polling of
+ * data from a device. It also processes common data.
+ * 
  * @author Daniël van Os - Initial contribution
  */
 @NonNullByDefault

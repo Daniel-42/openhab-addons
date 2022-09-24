@@ -23,8 +23,7 @@ import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
 
 /**
- * The {@link HomeWizardEnergySocketHandler} is responsible for handling commands, which are
- * sent to one of the channels.
+ * The {@link HomeWizardEnergySocketHandler} implements functionality to handle a HomeWizard EnergySocket.
  *
  * @author Daniël van Os - Initial contribution
  */
@@ -40,10 +39,22 @@ public class HomeWizardEnergySocketHandler extends HomeWizardStatefulDeviceHandl
         super(thing);
     }
 
+    /**
+     * Converts a brightness value (0..255) to a percentage.
+     *
+     * @param brightness The brightness to convert.
+     * @return brightness percentage
+     */
     private int brightnessToPercentage(int brightness) {
         return (int) (100.0 * brightness / 255.0 + 0.5);
     }
 
+    /**
+     * Converts a percentage to a brightness value (0..255)
+     *
+     * @param percentage The percentage to convert.
+     * @return brightness value
+     */
     private int percentageToBrightness(String percentage) {
         return (int) (Double.valueOf(percentage) * 255.0 / 100.0 + 0.5);
     }
@@ -56,11 +67,18 @@ public class HomeWizardEnergySocketHandler extends HomeWizardStatefulDeviceHandl
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (command instanceof RefreshType) {
-            // For now I prefer not updating above firing a full update request per channel
+            // For now I prefer not updating immediately above firing a full update request for each channel
             return;
         }
 
         StatePayload result = null;
+
+        /*
+         * The returned payloads below only contain the modified value, so each has it's own
+         * call to updateState instead of just calling handleStatePayload() with the returned
+         * payload.
+         */
+
         switch (channelUID.getId()) {
             case HomeWizardBindingConstants.CHANNEL_RING_BRIGHTNESS: {
                 result = sendStateCommand(
